@@ -35,10 +35,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange((_event, session) => {
-        const u = session?.user
-          ? { id: u.id, email: u.email || '', role: 'authenticated' }
+        const user = session?.user
+          ? { id: session.user.id, email: session.user.email || '', role: 'authenticated' }
           : null
-        set({ user: u })
+        set({ user })
       })
     } catch (err) {
       useDebugStore.getState().add('error', 'Auth init failed', err)
