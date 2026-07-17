@@ -1,0 +1,14 @@
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+.env
+*.log
+dist/
+build/
+.DS_Store
+*.sqlite3
+supabase/volumes/db/data/
+supabase/volumes/storage/
+supabase/volumes/funtions/
+supabase/official/

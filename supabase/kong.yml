@@ -1,0 +1,127 @@
+# ─── Kong API Gateway Config ─────────────────────────────────
+# Routes incoming HTTP requests to the right Supabase sub-service.
+# This is a declarative (DB-less) config.
+
+_format_version: "2.1"
+_transform: true
+
+services:
+  # ── Auth (GoTrue) ─────────────────────────────────────────
+  - name: auth-service
+    url: http://supabase-auth:9999/
+    routes:
+      - name: auth-routes
+        paths:
+          - /auth/v1/
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+    plugins:
+      - name: cors
+
+  # ── REST API (PostgREST) ──────────────────────────────────
+  - name: rest-service
+    url: http://supabase-rest:3000/
+    routes:
+      - name: rest-routes
+        paths:
+          - /rest/v1/
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+    plugins:
+      - name: cors
+
+  # ── Realtime ───────────────────────────────────────────────
+  - name: realtime-service
+    url: http://supabase-realtime:4000/
+    routes:
+      - name: realtime-routes
+        paths:
+          - /realtime/v1/
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - OPTIONS
+    plugins:
+      - name: cors
+
+  # ── Storage ────────────────────────────────────────────────
+  - name: storage-service
+    url: http://supabase-storage:5000/
+    routes:
+      - name: storage-routes
+        paths:
+          - /storage/v1/
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+    plugins:
+      - name: cors
+
+  # ── Studio (redirect root to Studio) ──────────────────────
+  - name: studio-redirect
+    url: http://supabase-studio:3000/
+    routes:
+      - name: studio-root
+        paths:
+          - /
+        methods:
+          - GET
+          - OPTIONS
+
+  # ── Health ────────────────────────────────────────────────
+  - name: health
+    url: http://supabase-rest:3000/
+    routes:
+      - name: health-routes
+        paths:
+          - /health
+        methods:
+          - GET
+    plugins:
+      - name: cors
+
+# ── Global Plugins ──────────────────────────────────────────
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - X-Client-Info
+        - X-Client-Info-Env
+        - apikey
+        - X-Forwarded-For
+        - Accept
+      exposed_headers:
+        - Content-Length
+        - Content-Range
+      credentials: true
+      max_age: 3600
+      preflight_continue: false
