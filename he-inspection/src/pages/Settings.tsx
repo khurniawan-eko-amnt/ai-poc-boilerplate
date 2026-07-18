@@ -84,7 +84,7 @@ export function SettingsPage() {
           <div>
             <p className="text-zinc-500">Supabase URL</p>
             <code className="text-blue-400 text-xs break-all">
-              {import.meta.env.VITE_SUPABASE_URL || 'http://104.215.187.68:8000'}
+              {import.meta.env.VITE_SUPABASE_URL || 'http://localhost:8000'}
             </code>
           </div>
           <div>

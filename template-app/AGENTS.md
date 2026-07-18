@@ -3,7 +3,7 @@
 # Each POC app is a copy of this directory with its own pages.
 
 AI_POC_REPO=/home/KSAP6748/ai-poc-boilerplate
-SUPABASE_URL=http://104.215.187.68:8000
+SUPABASE_URL=http://localhost:8000
 
 ## How to fork
 1. `cp -r template-app/ ~/my-new-poc`

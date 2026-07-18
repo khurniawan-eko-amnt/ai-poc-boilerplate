@@ -1,7 +1,7 @@
 # AGENTS.md — Hermes Agent context for this project
 
 ## Project
-AI POC Boilerplate — self-hosted Supabase on this VM (104.215.187.68) serving as the shared backend for all POC web apps.
+AI POC Boilerplate — self-hosted Supabase on this VM (localhost) serving as the shared backend for all POC web apps.
 
 ## Architecture
 - **Supabase** (self-hosted, Docker) — Postgres, Auth (GoTrue), PostgREST (auto REST API), Storage, Realtime, Studio
@@ -19,10 +19,10 @@ AI POC Boilerplate — self-hosted Supabase on this VM (104.215.187.68) serving 
 - `start.sh` — one-command start
 
 ## API
-- Auth: http://104.215.187.68:8000/auth/v1
-- REST: http://104.215.187.68:8000/rest/v1
-- Storage: http://104.215.187.68:8000/storage/v1
-- Studio: http://104.215.187.68:3001
+- Auth: http://localhost:8000/auth/v1
+- REST: http://localhost:8000/rest/v1
+- Storage: http://localhost:8000/storage/v1
+- Studio: http://localhost:3001
 - Admin login: admin / poc_admin_2026
 
 ## Key Commands

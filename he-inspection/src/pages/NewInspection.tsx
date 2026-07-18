@@ -71,9 +71,10 @@ export function NewInspectionPage() {
   const totalQuestions = sections.reduce((sum, s) => sum + s.questions.length, 0)
   const answeredCount = inspectionAnswers.size
 
-  // Finding text: realtime voiceTranscript when voice active, otherwise from store
+  // Finding text: keep local textarea state synced with the saved answer,
+  // while always showing the latest full speech result in the textarea.
   const storeText = currentQuestion ? inspectionAnswers.get(currentQuestion.id)?.text_value ?? '' : ''
-  const findingText = voiceListening ? voiceTranscript : storeText
+  const findingText = voiceTranscript
 
   // Also derive whether a defect is already flagged for this question
   const hasDefect = answer?.flagged === true
@@ -113,6 +114,11 @@ export function NewInspectionPage() {
   useEffect(() => {
     setLocalMedia([])
   }, [currentQuestion?.id])
+
+  // Sync textarea text to the currently saved value for this question
+  useEffect(() => {
+    setVoiceTranscript(storeText)
+  }, [currentQuestion?.id, storeText])
 
   // Reset selection when question changes
   useEffect(() => {
@@ -193,6 +199,7 @@ export function NewInspectionPage() {
     if (voiceListening) { stopListening(); return }
 
     const recognition = new SpeechRecognitionAPI()
+    recognitionRef.current = recognition
     recognition.lang = 'id-ID'
     recognition.continuous = true
     recognition.interimResults = true
@@ -255,6 +262,7 @@ export function NewInspectionPage() {
 
   const handleFindingTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value
+    setVoiceTranscript(val)
     if (currentQuestion) {
       saveAnswer(currentQuestion.id, {
         text_value: val,
@@ -393,6 +401,57 @@ export function NewInspectionPage() {
             </button>
           )}
 
+          {/* ── STEP 5: Media capture buttons (Video, Voice, Photo) ── */}
+          <div className="pt-2">
+            <p className="text-xs text-zinc-500 mb-2 flex items-center gap-1">
+              <Camera className="w-3 h-3" /> Ambil bukti visual / suara:
+            </p>
+            <div className="flex gap-3">
+              {/* Video Button */}
+              <button
+                onClick={handleVideo}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all border text-sm bg-purple-900/30 text-purple-300 border-purple-500/40 hover:bg-purple-800/40 hover:border-purple-400/60 active:scale-[0.97]"
+                title="Rekam Video"
+              >
+                <Video className="w-5 h-5" />
+                <span>Video</span>
+              </button>
+
+              {/* Voice Button */}
+              <button
+                onClick={handleVoice}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all border text-sm ${
+                  voiceListening
+                    ? 'bg-red-600 text-white border-red-500 shadow-lg shadow-red-600/40 scale-105'
+                    : 'bg-orange-900/30 text-orange-300 border-orange-500/40 hover:bg-orange-800/40 hover:border-orange-400/60 active:scale-[0.97]'
+                }`}
+                title={voiceListening ? 'Berhenti merekam' : 'Rekam suara'}
+              >
+                {voiceListening ? (
+                  <>
+                    <Square className="w-5 h-5" />
+                    <span>Stop</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-5 h-5" />
+                    <span>Voice</span>
+                  </>
+                )}
+              </button>
+
+              {/* Photo Button */}
+              <button
+                onClick={handlePhoto}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all border text-sm bg-sky-900/30 text-sky-300 border-sky-500/40 hover:bg-sky-800/40 hover:border-sky-400/60 active:scale-[0.97]"
+                title="Ambil Foto"
+              >
+                <Camera className="w-5 h-5" />
+                <span>Photo</span>
+              </button>
+            </div>
+          </div>
+
           {/* ── Jika sudah ada defect yang dipilih, tampilkan info ── */}
           {hasDefect && defectSeverity && (
             <div className={`px-5 py-4 rounded-2xl border ${
@@ -484,57 +543,6 @@ export function NewInspectionPage() {
               </div>
             </div>
           )}
-
-          {/* ── STEP 5: Media capture buttons (Video, Voice, Photo) ── */}
-          <div className="pt-2">
-            <p className="text-xs text-zinc-500 mb-2 flex items-center gap-1">
-              <Camera className="w-3 h-3" /> Ambil bukti visual / suara:
-            </p>
-            <div className="flex gap-3">
-              {/* Video Button */}
-              <button
-                onClick={handleVideo}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all border text-sm bg-purple-900/30 text-purple-300 border-purple-500/40 hover:bg-purple-800/40 hover:border-purple-400/60 active:scale-[0.97]"
-                title="Rekam Video"
-              >
-                <Video className="w-5 h-5" />
-                <span>Video</span>
-              </button>
-
-              {/* Voice Button */}
-              <button
-                onClick={handleVoice}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all border text-sm ${
-                  voiceListening
-                    ? 'bg-red-600 text-white border-red-500 shadow-lg shadow-red-600/40 scale-105'
-                    : 'bg-orange-900/30 text-orange-300 border-orange-500/40 hover:bg-orange-800/40 hover:border-orange-400/60 active:scale-[0.97]'
-                }`}
-                title={voiceListening ? 'Berhenti merekam' : 'Rekam suara'}
-              >
-                {voiceListening ? (
-                  <>
-                    <Square className="w-5 h-5" />
-                    <span>Stop</span>
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-5 h-5" />
-                    <span>Voice</span>
-                  </>
-                )}
-              </button>
-
-              {/* Photo Button */}
-              <button
-                onClick={handlePhoto}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all border text-sm bg-sky-900/30 text-sky-300 border-sky-500/40 hover:bg-sky-800/40 hover:border-sky-400/60 active:scale-[0.97]"
-                title="Ambil Foto"
-              >
-                <Camera className="w-5 h-5" />
-                <span>Photo</span>
-              </button>
-            </div>
-          </div>
 
           {/* ── STEP 6: Defect level selection buttons ── */}
           <div className="pt-2">

@@ -54,7 +54,7 @@ curl -H "apikey: $(grep ^SERVICE_ROLE_KEY supabase/.env | awk -F= '{print $2}')"
 
 ### 3. Open Studio Admin
 
-Browse to: **http://104.215.187.68:3001**
+Browse to: **http://localhost:3001**
 
 Login with:
 - **Username:** `admin`
@@ -93,7 +93,7 @@ npm install @supabase/supabase-js
 cat > src/lib/supabase.ts << 'EOF'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'http://104.215.187.68:8000'
+const supabaseUrl = 'http://localhost:8000'
 const supabaseAnonKey = '<get this from supabase/.env ANON_KEY>'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
@@ -104,12 +104,12 @@ EOF
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Kong Gateway** | `http://104.215.187.68:8000` | Single entry point for all APIs |
-| **Auth API** | `http://104.215.187.68:8000/auth/v1` | Signup, login, user management |
-| **REST API** | `http://104.215.187.68:8000/rest/v1` | Auto-generated CRUD from your tables |
-| **Storage API** | `http://104.215.187.68:8000/storage/v1` | File uploads and downloads |
-| **Realtime** | `http://104.215.187.68:8000/realtime/v1` | WebSocket subscriptions |
-| **Studio** | `http://104.215.187.68:3001` | Admin dashboard |
+| **Kong Gateway** | `http://localhost:8000` | Single entry point for all APIs |
+| **Auth API** | `http://localhost:8000/auth/v1` | Signup, login, user management |
+| **REST API** | `http://localhost:8000/rest/v1` | Auto-generated CRUD from your tables |
+| **Storage API** | `http://localhost:8000/storage/v1` | File uploads and downloads |
+| **Realtime** | `http://localhost:8000/realtime/v1` | WebSocket subscriptions |
+| **Studio** | `http://localhost:3001` | Admin dashboard |
 
 ## Environment Variables
 
