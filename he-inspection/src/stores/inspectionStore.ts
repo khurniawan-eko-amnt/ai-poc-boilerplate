@@ -2,6 +2,7 @@
 import { create } from 'zustand'
 import { supabase } from '../services/supabase'
 import { useDebugStore } from './debugStore'
+import { useAuthStore } from './authStore'
 import { generateClientId } from '../lib/utils'
 import type {
   Equipment, InspectionRun, InspectionAnswer, InspectionDefect,
@@ -95,8 +96,8 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
 
       // Try to set template_id in session for RLS
       if (tpl?.org_id) {
-        await supabase.rpc('set_config', { name: 'app.current_org_id', value: tpl.org_id })
-          .catch(() => {})
+        await supabase.rpc('set_config', { name: 'app.current_org_id', value: tpl.org_id }) as any
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
       }
     } catch (err) { debug.add('error', 'Failed to load template', err) }
   },
@@ -104,20 +105,28 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
   startInspection: async (equipmentId, templateId) => {
     const debug = useDebugStore.getState()
     try {
+      // Get the current user's ID from auth store
+      const user = useAuthStore.getState().user
+      const inspectorId = user?.id || null
+
       const clientId = generateClientId()
-      const { data, error } = await supabase.from('inspection_runs').insert({
+      const insertPayload: Record<string, any> = {
         equipment_id: equipmentId,
         template_id: templateId,
         status: 'in_progress',
         client_id: clientId,
         started_offline: !navigator.onLine,
-      }).select('*').single()
+      }
+      if (inspectorId) insertPayload.inspector_id = inspectorId
+
+      const { data, error } = await supabase.from('inspection_runs').insert(insertPayload).select('*').single()
       if (error) throw error
       set({ currentInspection: data, inspectionAnswers: new Map() })
       debug.add('info', `Started inspection: ${data.id}`)
       return data.id
     } catch (err) {
-      debug.add('error', 'Failed to start inspection', err)
+      const msg = err instanceof Error ? err.message : String(err)
+      debug.add('error', `Failed to start inspection: ${msg}`)
       return null
     }
   },

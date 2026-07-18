@@ -100,13 +100,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       return { error: error.message }
     }
     if (name) {
-      // Create inspection user record
+      // Create inspection user record with default org
+      const { data: org } = await supabase.from('organizations').select('id').limit(1).maybeSingle()
       await supabase.from('users').insert({
         email,
         name,
         role: 'inspector',
+        org_id: org?.id || null,
         is_active: true,
-      }).maybeSingle()
+      }).select().maybeSingle()
     }
     debug.add('info', 'Signup successful')
     return {}
@@ -135,7 +137,14 @@ export const useAuthStore = create<AuthState>((set) => ({
           role: profile.role,
           org_id: profile.org_id,
           site_id: profile.site_id,
-        } : null,
+        } : {
+          id: data.user.id,
+          email: data.user.email || '',
+          name: data.user.email?.split('@')[0] || 'User',
+          role: 'inspector' as const,
+          org_id: null,
+          site_id: null,
+        },
       })
     }
     debug.add('info', `Login successful: ${email}`)

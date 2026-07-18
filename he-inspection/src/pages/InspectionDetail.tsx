@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText, Flag, CheckCircle, Camera, AlertTriangle } from 'lucide-react'
 import { useInspectionStore } from '../stores/inspectionStore'
 import { cn, formatDate, severityColor } from '../lib/utils'
-import type { TemplateSection, TemplateQuestion, InspectionAnswer } from '../lib/types'
+import type { TemplateQuestion, InspectionAnswer } from '../lib/types'
 
 function Spinner() {
   return (

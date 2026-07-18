@@ -165,3 +165,15 @@ export interface InspectionDefect {
   created_at: string
   updated_at: string
 }
+
+export interface Upload {
+  id: string
+  name: string
+  file_name: string
+  file_size: number
+  storage_path: string
+  url: string
+  mime_type: string
+  file_size_bytes: number
+  created_at: string
+}

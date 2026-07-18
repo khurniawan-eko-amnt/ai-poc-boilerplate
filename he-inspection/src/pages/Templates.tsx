@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileText, Edit } from 'lucide-react'
 import { supabase } from '../services/supabase'
-import { cn } from '../lib/utils'
-import type { InspectionTemplate, TemplateSection, TemplateQuestion } from '../lib/types'
+import type { InspectionTemplate } from '../lib/types'
 
 export function TemplatesPage() {
   const navigate = useNavigate()

@@ -1,7 +1,7 @@
 // ─── Voice Input Button ──────────────────────────────────
 // Uses Web Speech API for Bahasa Indonesia (id-ID).
 import { useState, useRef, useCallback } from 'react'
-import { Mic, MicOff, Loader2 } from 'lucide-react'
+import { Mic, MicOff } from 'lucide-react'
 import { useDebugStore } from '../stores/debugStore'
 
 interface VoiceButtonProps {
@@ -12,23 +12,23 @@ interface VoiceButtonProps {
 export function VoiceButton({ onResult, disabled }: VoiceButtonProps) {
   const [listening, setListening] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<any>(null)
   const debug = useDebugStore((s) => s.add)
 
   const startListening = useCallback(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) {
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognitionAPI) {
       setError('Browser tidak mendukung voice input')
       debug('error', 'Voice not supported in this browser')
       return
     }
 
-    const recognition = new SpeechRecognition()
+    const recognition = new SpeechRecognitionAPI()
     recognition.lang = 'id-ID'
     recognition.continuous = false
     recognition.interimResults = true
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       let finalTranscript = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
@@ -41,7 +41,7 @@ export function VoiceButton({ onResult, disabled }: VoiceButtonProps) {
       }
     }
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       setError(`Error: ${event.error}`)
       setListening(false)
       debug('error', 'Voice error', event.error)

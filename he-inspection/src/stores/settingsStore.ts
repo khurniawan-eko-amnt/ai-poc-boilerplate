@@ -1,7 +1,12 @@
 // ─── Settings Store ───────────────────────────────────────
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { AppSettings } from '../lib/types'
+interface AppSettings {
+  theme: 'light' | 'dark' | 'system'
+  aiModel: string
+  aiPrompt: string
+  showDebugPanel: boolean
+}
 
 interface SettingsState {
   settings: AppSettings
@@ -33,7 +38,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       toggleTheme: () => {
-        const themes: Array<'light' | 'dark'> = ['light', 'dark', 'light']
+        const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'light']
         const next = themes[themes.indexOf(get().settings.theme) + 1] || 'light'
         set((s) => ({ settings: { ...s.settings, theme: next } }))
         get().applyTheme()

@@ -29,7 +29,7 @@ export function DashboardPage() {
           .from('inspection_defects').select('*', { count: 'exact', head: true })
           .not('status', 'in', '("resolved","closed")')
 
-        setStats({ active, down, maintenance, inspectionsToday: todayCount || 0, openDefects: defects || 0 })
+        setStats({ active, down, maintenance: maint, inspectionsToday: todayCount || 0, openDefects: defects || 0 })
 
         const { data: recent } = await supabase
           .from('inspection_runs').select('*').order('started_at', { ascending: false }).limit(5)
