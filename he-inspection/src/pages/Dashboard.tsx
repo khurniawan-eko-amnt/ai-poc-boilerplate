@@ -121,7 +121,13 @@ export function DashboardPage() {
                       Equipment: {run.equipment_id?.slice(0, 8)}...
                     </p>
                     <p className="text-xs text-zinc-500 mt-0.5">
-                      {new Date(run.started_at).toLocaleDateString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                      {new Date(run.started_at).toLocaleString('id-ID', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${statusColor(run.status)}`}>

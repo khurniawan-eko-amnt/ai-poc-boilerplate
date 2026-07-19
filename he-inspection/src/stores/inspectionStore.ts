@@ -106,10 +106,9 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
       set({ activeTemplate: { ...tpl, sections: fullSections } })
       debug.add('info', `Loaded template: ${tpl?.name} (${fullSections.length} sections)`)
 
-      // Try to set template_id in session for RLS
+      // RLS org context RPC is optional and may not exist in this deployment.
       if (tpl?.org_id) {
-        await supabase.rpc('set_config', { name: 'app.current_org_id', value: tpl.org_id }) as any
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+        debug.add('info', `Template org context loaded: ${tpl.org_id}`)
       }
     } catch (err) { debug.add('error', 'Failed to load template', err) }
   },

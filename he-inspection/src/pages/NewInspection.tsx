@@ -266,12 +266,17 @@ export function NewInspectionPage() {
   const handleVoice = useCallback(() => {
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognitionAPI) { toast({ type: 'error', message: 'Voice tidak didukung di browser ini' }); return }
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    if (!window.isSecureContext && !isLocalhost) {
+      toast({ type: 'error', message: 'Voice butuh koneksi HTTPS (atau localhost)' })
+      return
+    }
     if (voiceListening) { stopListening(); return }
 
     const recognition = new SpeechRecognitionAPI()
     recognitionRef.current = recognition
     recognition.lang = 'id-ID'
-    recognition.continuous = true
+    recognition.continuous = false
     recognition.interimResults = true
     recognition.maxAlternatives = 1
 
@@ -300,6 +305,12 @@ export function NewInspectionPage() {
 
     recognition.onerror = (event: any) => {
       debug('error', `Voice error: ${event.error}`)
+      if (event.error === 'network') {
+        toast({
+          type: 'error',
+          message: 'Layanan voice tidak dapat diakses (network). Cek internet/browser permission lalu coba lagi.'
+        })
+      }
       setVoiceListening(false)
       setInterimText('')
     }
