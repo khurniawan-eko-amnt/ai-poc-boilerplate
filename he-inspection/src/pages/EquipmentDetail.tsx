@@ -1,7 +1,7 @@
-// ─── Equipment Detail Page ────────────────────────────────
+// ─── Equipment Detail Page (Revised with Resume) ──────────
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Play, Edit, ClipboardList, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Play, Edit, ClipboardList, AlertTriangle, RotateCcw } from 'lucide-react'
 import { supabase } from '../services/supabase'
 import { cn, formatDate, statusColor, severityColor } from '../lib/utils'
 import type { Equipment, InspectionRun, InspectionDefect } from '../lib/types'
@@ -48,6 +48,9 @@ export function EquipmentDetailPage() {
     }
   }
 
+  // Check if there's an in-progress inspection for this equipment
+  const activeInspection = inspections.find((r) => r.status === 'in_progress')
+
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center">
@@ -81,13 +84,24 @@ export function EquipmentDetailPage() {
           Back to Equipment
         </button>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate(`/inspections/new/${eq.id}`)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            <Play className="w-4 h-4" />
-            Start Inspection
-          </button>
+          {/* Start or Resume Inspection */}
+          {activeInspection ? (
+            <button
+              onClick={() => navigate(`/inspections/new/${eq.id}`)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Lanjutkan Inspeksi
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate(`/inspections/new/${eq.id}`)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              <Play className="w-4 h-4" />
+              Start Inspection
+            </button>
+          )}
           <Link
             to="/equipment/new"
             className="inline-flex items-center gap-1.5 px-3 py-2 border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white rounded-lg text-sm transition-colors"
@@ -97,6 +111,25 @@ export function EquipmentDetailPage() {
           </Link>
         </div>
       </div>
+
+      {/* Resume Banner */}
+      {activeInspection && (
+        <div className="bg-blue-900/20 border border-blue-800 text-blue-400 rounded-lg p-4 flex items-center gap-3">
+          <RotateCcw className="w-5 h-5 shrink-0" />
+          <div className="flex-1">
+            <p className="font-medium">Inspeksi belum selesai</p>
+            <p className="text-sm text-blue-400/70">
+              Ada inspeksi yang dijeda. Klik "Lanjutkan Inspeksi" untuk melanjutkan.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(`/inspections/new/${eq.id}`)}
+            className="shrink-0 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            Lanjutkan
+          </button>
+        </div>
+      )}
 
       {/* Equipment Info Card */}
       <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
@@ -206,7 +239,7 @@ export function EquipmentDetailPage() {
                     <td className="px-4 py-3 text-zinc-100">{formatDate(run.started_at)}</td>
                     <td className="px-4 py-3">
                       <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium', statusColor(run.status))}>
-                        {run.status.replace('_', ' ')}
+                        {run.status === 'in_progress' ? 'in progress' : run.status.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-zinc-400">{run.inspector_id?.slice(0, 8) || '—'}</td>
@@ -231,10 +264,7 @@ export function EquipmentDetailPage() {
             defects
               .filter((d) => d.status !== 'resolved' && d.status !== 'closed')
               .map((def) => (
-                <div
-                  key={def.id}
-                  className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 hover:bg-zinc-800/40 transition-colors"
-                >
+                <div key={def.id} className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 hover:bg-zinc-800/40 transition-colors">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-zinc-100 truncate">{def.title}</p>

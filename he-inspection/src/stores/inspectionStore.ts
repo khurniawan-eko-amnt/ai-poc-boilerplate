@@ -1,4 +1,4 @@
-// ─── Inspection Store ─────────────────────────────────────
+// ─── Inspection Store (Revised) ─────────────────────────────
 import { create } from 'zustand'
 import { supabase } from '../services/supabase'
 import { useDebugStore } from './debugStore'
@@ -24,7 +24,7 @@ interface InspectionState {
   inspectionAnswers: Map<string, InspectionAnswer>
   inspectionMedia: InspectionMedia[]
   startInspection: (equipmentId: string, templateId: string) => Promise<string | null>
-  saveAnswer: (questionId: string, partial: Partial<InspectionAnswer>) => Promise<void>
+  saveAnswer: (questionId: string, partial: Partial<InspectionAnswer>) => Promise<string | null>
   completeInspection: () => Promise<void>
   loadInspection: (inspectionId: string) => Promise<void>
 
@@ -39,7 +39,7 @@ interface InspectionState {
   updateDefect: (id: string, updates: Partial<InspectionDefect>) => Promise<void>
 
   // Media
-  uploadMedia: (file: File, inspectionId: string, answerId?: string) => Promise<string | null>
+  uploadMedia: (file: File, inspectionId: string, answerId: string | null) => Promise<string | null>
 
   // Reset
   resetCurrentInspection: () => void
@@ -105,19 +105,30 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
   startInspection: async (equipmentId, templateId) => {
     const debug = useDebugStore.getState()
     try {
-      // Get the current user's ID from auth store
+      // Get the current user's ID from auth store — must always be set
       const user = useAuthStore.getState().user
-      const inspectorId = user?.id || null
+      const inspectorId = user?.id
+
+      // Try getting auth user ID as fallback if profile user not found
+      let resolvedInspectorId = inspectorId
+      if (!resolvedInspectorId) {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (authUser?.id) resolvedInspectorId = authUser.id
+      }
+
+      if (!resolvedInspectorId) {
+        throw new Error('User tidak ditemukan. Silakan login ulang.')
+      }
 
       const clientId = generateClientId()
       const insertPayload: Record<string, any> = {
         equipment_id: equipmentId,
         template_id: templateId,
+        inspector_id: resolvedInspectorId,
         status: 'in_progress',
         client_id: clientId,
         started_offline: !navigator.onLine,
       }
-      if (inspectorId) insertPayload.inspector_id = inspectorId
 
       const { data, error } = await supabase.from('inspection_runs').insert(insertPayload).select('*').single()
       if (error) throw error
@@ -127,29 +138,38 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       debug.add('error', `Failed to start inspection: ${msg}`)
-      return null
+      throw err // Let caller handle error
     }
   },
 
   saveAnswer: async (questionId, partial) => {
     const { currentInspection, inspectionAnswers } = get()
-    if (!currentInspection) return
-    const existing = inspectionAnswers.get(questionId)
-    const answer = {
-      inspection_id: currentInspection.id,
-      question_id: questionId,
-      answer_type: partial.answer_type || '',
-      ...partial,
+    if (!currentInspection) return null
+    try {
+      const existing = inspectionAnswers.get(questionId)
+      const answer = {
+        inspection_id: currentInspection.id,
+        question_id: questionId,
+        answer_type: partial.answer_type || '',
+        ...partial,
+      }
+      if (existing?.id) {
+        const { error } = await supabase.from('inspection_answers').update(answer).eq('id', existing.id)
+        if (error) throw error
+      } else {
+        const { data, error } = await supabase.from('inspection_answers').insert(answer).select('id').single()
+        if (error) throw error
+        if (data) answer.id = data.id
+      }
+      const newMap = new Map(inspectionAnswers)
+      newMap.set(questionId, answer as InspectionAnswer)
+      set({ inspectionAnswers: newMap })
+      return (answer as InspectionAnswer).id || null
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      useDebugStore.getState().add('error', `Failed to save answer: ${msg}`, err)
+      throw err
     }
-    if (existing?.id) {
-      await supabase.from('inspection_answers').update(answer).eq('id', existing.id)
-    } else {
-      const { data } = await supabase.from('inspection_answers').insert(answer).select('id').single()
-      if (data) answer.id = data.id
-    }
-    const newMap = new Map(inspectionAnswers)
-    newMap.set(questionId, answer as InspectionAnswer)
-    set({ inspectionAnswers: newMap })
   },
 
   completeInspection: async () => {
@@ -157,13 +177,18 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
     if (!currentInspection) return
     const debug = useDebugStore.getState()
     try {
-      await supabase.from('inspection_runs').update({
+      const { error } = await supabase.from('inspection_runs').update({
         status: 'completed',
         completed_at: new Date().toISOString(),
       }).eq('id', currentInspection.id)
+      if (error) throw error
       set({ currentInspection: { ...currentInspection, status: 'completed', completed_at: new Date().toISOString() } })
       debug.add('info', 'Inspection completed')
-    } catch (err) { debug.add('error', 'Failed to complete inspection', err) }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      debug.add('error', `Failed to complete inspection: ${msg}`)
+      throw err
+    }
   },
 
   loadInspection: async (inspectionId) => {
@@ -238,12 +263,12 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
         file_size_bytes: file.size,
       }).select('id').single()
       if (error) throw error
-      get().loadInspection(inspectionId)
       debug.add('info', `Media uploaded: ${file.name}`)
       return media?.id || null
     } catch (err) {
-      debug.add('error', 'Media upload failed', err)
-      return null
+      const msg = err instanceof Error ? err.message : String(err)
+      debug.add('error', `Media upload failed: ${msg}`)
+      throw err
     }
   },
 
