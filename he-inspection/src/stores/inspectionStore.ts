@@ -9,6 +9,18 @@ import type {
   InspectionTemplate, TemplateSection, TemplateQuestion, InspectionMedia,
 } from '../lib/types'
 
+/** Safely extract a string message from any error-like value */
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === 'object' && err !== null) {
+    const e = err as Record<string, unknown>
+    return e.message ? String(e.message)
+      : e.code ? `Code ${e.code}: ${String(e.details || e.hint || '')}`
+      : JSON.stringify(err)
+  }
+  return String(err)
+}
+
 interface InspectionState {
   // Equipment
   equipmentList: Equipment[]
@@ -136,8 +148,8 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
       debug.add('info', `Started inspection: ${data.id}`)
       return data.id
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      debug.add('error', `Failed to start inspection: ${msg}`)
+      const msg = errorMessage(err)
+      debug.add('error', `Failed to start inspection: ${msg}`, err)
       throw err // Let caller handle error
     }
   },
@@ -166,7 +178,7 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
       set({ inspectionAnswers: newMap })
       return (answer as InspectionAnswer).id || null
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = errorMessage(err)
       useDebugStore.getState().add('error', `Failed to save answer: ${msg}`, err)
       throw err
     }
@@ -185,7 +197,7 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
       set({ currentInspection: { ...currentInspection, status: 'completed', completed_at: new Date().toISOString() } })
       debug.add('info', 'Inspection completed')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = errorMessage(err)
       debug.add('error', `Failed to complete inspection: ${msg}`)
       throw err
     }
@@ -266,7 +278,7 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
       debug.add('info', `Media uploaded: ${file.name}`)
       return media?.id || null
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = errorMessage(err)
       debug.add('error', `Media upload failed: ${msg}`)
       throw err
     }

@@ -43,7 +43,7 @@ export function severityColor(severity: string): string {
 }
 
 export function generateClientId(): string {
-  return `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
+  return crypto.randomUUID()
 }
 
 export function formatBytes(bytes: number): string {

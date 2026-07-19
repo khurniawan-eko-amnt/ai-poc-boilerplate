@@ -75,16 +75,25 @@ export function NewInspectionPage() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [showMenu])
 
+  const [started, setStarted] = useState(false)
+
   // Load template and start inspection on mount
   useEffect(() => {
     async function init() {
       if (!equipmentId) return
       await loadTemplate()
       const tpl = useInspectionStore.getState().activeTemplate
-      if (tpl && !currentInspection) {
-        const insId = await startInspection(equipmentId, tpl.id)
-        if (!insId) {
-          toast({ type: 'error', message: 'Gagal memulai inspeksi. Coba lagi.' })
+      const insp = useInspectionStore.getState().currentInspection
+      if (tpl && !insp && !started) {
+        setStarted(true)
+        try {
+          const insId = await startInspection(equipmentId, tpl.id)
+          if (!insId) {
+            toast({ type: 'error', message: 'Gagal memulai inspeksi. Coba lagi.' })
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          toast({ type: 'error', message: `Gagal memulai inspeksi: ${msg}` })
         }
       }
       setLoading(false)
