@@ -18,7 +18,7 @@ interface DebugState {
 
 let nextId = 0
 
-export const useDebugStore = create<DebugState>((set, get) => ({
+export const useDebugStore = create<DebugState>((set) => ({
   logs: [],
   add: (level, msg, data) => {
     const entry: LogEntry = {

@@ -5,6 +5,7 @@ import { useAuthStore } from './stores/authStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useDebugShortcut } from './components/DebugPanel'
 import { DebugPanel } from './components/DebugPanel'
+import { ToastContainer } from './components/ToastContainer'
 import { AppLayout } from './components/Layout'
 import { LoginPage } from './pages/Login'
 import { RegisterPage } from './pages/Register'
@@ -82,6 +83,7 @@ export default function App() {
       </Routes>
 
       <DebugPanel />
+      <ToastContainer />
     </BrowserRouter>
   )
 }

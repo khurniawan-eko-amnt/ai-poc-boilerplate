@@ -69,11 +69,19 @@ From Studio you can:
 
 ### 4. Create a New POC App
 
+**Quick start (10 seconds):**
 ```bash
-./supabase/setup-poc-app.sh <app-name> [app-title]
+./poc-init.sh <app-name> [app-title]
 
 # Example:
-./supabase/setup-poc-app.sh chat-assistant "AI Chat Assistant"
+./poc-init.sh chat-assistant "AI Chat Assistant"
+```
+
+This copies the template, creates schema + bucket, writes `.env`, installs deps, and starts the dev server on a free port.
+
+**Manual (step by step):**
+```bash
+./supabase/setup-poc-app.sh <app-name> [app-title]
 ```
 
 This creates:

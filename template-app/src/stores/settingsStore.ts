@@ -33,8 +33,8 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       toggleTheme: () => {
-        const themes: Array<'light' | 'dark'> = ['light', 'dark', 'light']
-        const next = themes[themes.indexOf(get().settings.theme) + 1] || 'light'
+        const { theme } = get().settings
+        const next = theme === 'dark' ? 'light' : 'dark'
         set((s) => ({ settings: { ...s.settings, theme: next } }))
         get().applyTheme()
       },

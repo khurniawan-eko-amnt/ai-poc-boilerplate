@@ -1,7 +1,7 @@
 // ─── Voice Input Button ──────────────────────────────────
 // Uses Web Speech API for Bahasa Indonesia (id-ID).
 import { useState, useRef, useCallback } from 'react'
-import { Mic, MicOff, Loader2 } from 'lucide-react'
+import { Mic, MicOff } from 'lucide-react'
 import { useDebugStore } from '../stores/debugStore'
 
 interface VoiceButtonProps {
@@ -12,11 +12,11 @@ interface VoiceButtonProps {
 export function VoiceButton({ onResult, disabled }: VoiceButtonProps) {
   const [listening, setListening] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<any | null>(null)
   const debug = useDebugStore((s) => s.add)
 
   const startListening = useCallback(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) {
       setError('Browser tidak mendukung voice input')
       debug('error', 'Voice not supported in this browser')
@@ -28,7 +28,7 @@ export function VoiceButton({ onResult, disabled }: VoiceButtonProps) {
     recognition.continuous = false
     recognition.interimResults = true
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
@@ -41,17 +41,18 @@ export function VoiceButton({ onResult, disabled }: VoiceButtonProps) {
       }
     }
 
-    recognition.onerror = (event) => {
-      setError(`Error: ${event.error}`)
+    recognition.onerror = (event: Event) => {
+      const err = event as SpeechRecognitionErrorEvent
+      setError(`Error: ${err.error}`)
       setListening(false)
-      debug('error', 'Voice error', event.error)
+      debug('error', 'Voice error', err.error)
     }
 
     recognition.onend = () => {
       setListening(false)
     }
 
-    recognitionRef.current = recognition
+    recognitionRef.current = recognition as any
     recognition.start()
     setListening(true)
     setError(null)

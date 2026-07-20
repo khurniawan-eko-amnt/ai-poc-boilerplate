@@ -1,6 +1,6 @@
 // ─── Documents Page ──────────────────────────────────────
 import { useEffect, useState } from 'react'
-import { FileText, Image, Download, Trash2, Loader2, ExternalLink } from 'lucide-react'
+import { FileText, Image, Trash2, Loader2, ExternalLink } from 'lucide-react'
 import { supabase } from '../services/supabase'
 import { FileUpload } from '../components/FileUpload'
 import { useDebugStore } from '../stores/debugStore'

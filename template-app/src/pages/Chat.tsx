@@ -1,6 +1,6 @@
 // ─── AI Chat Page ─────────────────────────────────────────
 import { useEffect, useState, useRef } from 'react'
-import { Send, Plus, Trash2, Paperclip, Loader2, Square } from 'lucide-react'
+import { MessageSquare, Send, Plus, Paperclip, Square } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { useChatStore } from '../stores/chatStore'
 import { VoiceButton } from '../components/VoiceButton'
@@ -172,5 +172,3 @@ export function ChatPage() {
     </div>
   )
 }
-
-import { MessageSquare } from 'lucide-react'
