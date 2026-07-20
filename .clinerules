@@ -1,0 +1,95 @@
+# Cline rules for `it-dt-poc`
+
+## Repository role
+This repository is primarily a **shared backend/infrastructure workspace** for AI POC applications:
+- `supabase/` contains the self-hosted Supabase stack and setup scripts.
+- `template-app/` is the canonical frontend scaffold for new POC apps.
+- `he-inspection/` is the current concrete application built from the scaffold.
+- Root scripts orchestrate startup and app provisioning.
+
+Route work accordingly:
+- If the task is about Docker, Kong, schema setup, storage buckets, or shared backend behavior, work at the repo root or under `supabase/`.
+- If the task is about reusable frontend scaffolding, work in `template-app/`.
+- If the task is about the live inspection app, work in `he-inspection/`.
+
+## Source-of-truth files
+Prefer these files before inventing new workflow:
+- `AGENTS.md`
+- `README.md`
+- `start.sh`
+- `poc-init.sh`
+- `supabase/setup-poc-app.sh`
+- `docs/cline-workflow.md`
+
+## Report and presentation baseline
+- Always use `docs/AMMAN-REPORT-DESIGN.md` as the baseline for any HTML report generation task.
+- Always use `docs/AMMAN-REPORT-DESIGN.md` as the baseline for any presentation slide or slide-like HTML generation task.
+- Follow the layout rule defined in that file:
+  - use the paginated A4 `.sheet` report pattern for formal reports, recommendation studies, business cases, and similar documents
+  - use the sidebar navigation presentation pattern for sprint updates, executive briefings, project status pages, and similar slide-style content
+
+## Operating model
+- Supabase is self-hosted locally behind Kong at `http://localhost:8000`.
+- Studio runs at `http://localhost:3001`.
+- Each POC app gets:
+  - a Postgres schema named `poc_<app_name>`
+  - a storage bucket named `poc-<app-name>`
+
+Preserve this naming convention in code, docs, and scripts.
+
+## Safety rules
+- Never overwrite or print secret values from `.env` files.
+- Treat `supabase/.env` and app `.env` files as sensitive.
+- Do not casually edit `package-lock.json` unless dependency changes are required.
+- Do not change Docker service names, Kong routing, or PostgREST schema wiring unless the task explicitly requires it.
+- Avoid destructive Docker commands, database resets, or schema drops unless explicitly requested.
+- Do not replace the scaffold structure in `template-app/` with app-specific logic.
+
+## Preferred validation
+There is no meaningful automated test suite today. For most frontend changes, validate with:
+1. `npm run lint`
+2. `npm run build`
+
+Run validation in the app you changed:
+- `template-app/` for scaffold work
+- `he-inspection/` for live app work
+
+For infrastructure/script changes, prefer targeted verification:
+- shell script review
+- config review
+- Docker compose syntax checks only if necessary and safe
+
+## Frontend conventions
+For both frontend apps:
+- Pages live in `src/pages/`
+- Reusable components live in `src/components/`
+- Zustand stores live in `src/stores/`
+- Shared helpers/types live in `src/lib/`
+- Supabase client lives in `src/services/supabase.ts`
+- AI proxy calls live in `src/services/ai-proxy.ts`
+
+Preserve existing patterns:
+- log useful store events to `useDebugStore`
+- surface user-facing outcomes through `useToastStore`
+- keep request code aligned with `VITE_SUPABASE_URL`
+- keep scaffold features reusable, not overly app-specific
+
+## Workflow preferences
+- For a new POC app, prefer `./poc-init.sh <app-name> "App Title"` from repo root.
+- For backend startup, prefer `./start.sh`.
+- For manual schema provisioning, use `supabase/setup-poc-app.sh`.
+
+When documenting or changing workflow, align with the existing scripts instead of creating parallel manual processes.
+
+## Editing guidance
+- Make the smallest change that satisfies the task.
+- Update docs when workflow, conventions, or architectural expectations change.
+- If changing both `template-app/` and `he-inspection/`, keep shared behavior aligned unless the difference is intentional and documented.
+- Prefer explicit, task-oriented notes over generic agent prose.
+
+## Completion checklist
+Before finishing:
+- confirm edits were made in the correct scope
+- confirm no secrets were introduced
+- run the most relevant validation available for changed code
+- ensure docs and rules remain consistent with scripts and folder structure

@@ -1,33 +1,86 @@
-# ─── Template App ──────────────────────────────────────────
-# This is the forkable frontend scaffold for any POC AI web app.
-# Each POC app is a copy of this directory with its own pages.
+# AGENTS.md — agent context for `template-app`
 
-AI_POC_REPO=/home/KSAP6748/ai-poc-boilerplate
-SUPABASE_URL=http://localhost:8000
+## Directory role
+`template-app/` is the canonical frontend scaffold for new AI POC applications.
+Changes in this directory should be:
+- reusable across future apps
+- generic instead of inspection-specific
+- aligned with the shared Supabase workflow defined at the repo root
 
-## How to fork (fast — 10 seconds)
-Run from the repo root:
+If a change only makes sense for the current inspection product, it should usually go in `../he-inspection/` instead.
+
+## Preferred bootstrap workflow
+From the repo root, use:
+```bash
+./poc-init.sh <app-name> "App Title"
 ```
-./poc-init.sh my-new-poc "My New POC Title"
-```
-This does everything: copies template, creates schema + bucket, writes .env, installs deps, starts dev server on a free port.
 
-## How to fork (manual)
-1. `cp -r template-app/ ~/my-new-poc`
-2. `cd ~/my-new-poc`
-3. Create schema: `../supabase/setup-poc-app.sh my-new-poc`
-4. Edit `.env` with ANON_KEY
-5. `npm run dev`
+This is the preferred way to create a new app from the scaffold because it:
+- copies the template
+- provisions the schema
+- provisions the storage bucket
+- writes the app `.env`
+- installs dependencies
+- starts a dev server on a free port
+
+## Manual workflow
+Use the manual path only when the task specifically requires it:
+1. copy `template-app/` to a new app directory
+2. run `supabase/setup-poc-app.sh <app-name> "App Title"`
+3. update the new app `.env`
+4. run `npm run dev`
+
+## Stack
+This app uses:
+- React
+- TypeScript
+- Vite
+- Zustand
+- Supabase client
 
 ## Conventions
-- Zustand stores in stores/
-- Pages in pages/
-- Components in components/
-- Toast notifications: `useToastStore.getState().add({ type, message })`
-- Supabase client in services/supabase.ts
-- AI proxy calls in services/ai-proxy.ts
-- All requests use VITE_SUPABASE_URL env var
+Preserve the existing layout:
+- `src/pages/` for page-level screens
+- `src/components/` for reusable UI
+- `src/stores/` for Zustand state
+- `src/lib/` for helpers and shared types
+- `src/services/supabase.ts` for Supabase access
+- `src/services/ai-proxy.ts` for AI-related requests
+
+Preserve these patterns:
+- use `useToastStore.getState().add({ type, message })` for user-facing notifications
+- log useful API and workflow events to `useDebugStore`
+- keep requests aligned with `VITE_SUPABASE_URL`
+- keep scaffold behavior reusable
+
+## Built-in scaffold capabilities
+The template already includes baseline features for new POC apps:
+- authentication
+- session persistence
+- AI chat
+- file upload
+- voice input
+- toast notifications
+- debug panel
+- responsive layout
+- settings
+
+Prefer extending these patterns over introducing parallel systems.
 
 ## Debug
-- Ctrl+` toggles debug panel
-- All API calls logged to debug store
+- `Ctrl+\`` toggles the debug panel
+- API calls and useful workflow events should be visible in the debug store
+
+## Validation
+Preferred commands:
+```bash
+npm run lint
+npm run build
+```
+
+There is no meaningful automated test suite yet, so lint and build are the main validation steps.
+
+## Safety rules
+- never print or overwrite `.env` secrets casually
+- avoid changing `package-lock.json` unless dependency changes are required
+- avoid app-specific domain leakage into the scaffold

@@ -1,77 +1,121 @@
-# AGENTS.md — Hermes Agent context for this project
+# AGENTS.md — agent context for `it-dt-poc`
 
 ## Project
-AI POC Boilerplate — self-hosted Supabase on this VM (localhost) serving as the shared backend for all POC web apps.
+AI POC Boilerplate — a shared self-hosted Supabase backend plus frontend scaffolds for AI-powered POC applications.
+
+## Repository role
+This repository has three main responsibilities:
+- `supabase/` — shared backend stack and provisioning scripts
+- `template-app/` — canonical frontend scaffold for new POC apps
+- `he-inspection/` — the current concrete inspection application built from the scaffold
+
+When routing work:
+- use repo root or `supabase/` for infrastructure, Docker, Kong, schema, storage, and bootstrap workflow tasks
+- use `template-app/` for reusable scaffold improvements
+- use `he-inspection/` for app-specific inspection features and fixes
 
 ## Architecture
-- **Supabase** (self-hosted, Docker) — Postgres, Auth (GoTrue), PostgREST (auto REST API), Storage, Realtime, Studio
-- **Kong** — API Gateway on port 8000 routes requests to sub-services
-- **Studio** — Admin UI on port 3001 for DB management
-- Each POC app gets its own Postgres schema (poc_*) within the shared Supabase instance
-- AI features use a separate FastAPI proxy (optional, not yet deployed)
+- **Supabase** (self-hosted via Docker) provides Postgres, Auth, PostgREST, Storage, Realtime, and Studio
+- **Kong** exposes the local API gateway on port `8000`
+- **Studio** is available on port `3001`
+- Each POC app gets:
+  - a Postgres schema named `poc_<app_name>`
+  - a storage bucket named `poc-<app-name>`
+- AI features may use a separate proxy service, but the current repository focus is the shared Supabase-backed workflow
 
-## Directory
-- `poc-init.sh` — **One-command launcher** for new POC apps (copy template + create schema + install + start)
-- `supabase/` — Docker Compose + .env + volumes + templates
-- `supabase/.env` — secrets (ANON_KEY, SERVICE_ROLE_KEY, JWT_SECRET, etc.)
-- `supabase/docker-compose.yml` — official Supabase stack
-- `supabase/templates/poc-schema-template.sql` — schema template for new apps
-- `supabase/setup-poc-app.sh` — script to create new POC app schema (called by poc-init.sh)
-- `template-app/` — forkable React + Vite + TS + Tailwind scaffold
-- `he-inspection/` — first concrete POC (CAT793 inspection app)
-- `start.sh` — one-command Supabase start
-- `docs/` — development reports, productivity/optimization guide
+## Source-of-truth files
+Prefer these before creating new workflow or documentation:
+- `README.md`
+- `start.sh`
+- `poc-init.sh`
+- `supabase/setup-poc-app.sh`
+- `.clinerules`
+- `docs/cline-workflow.md`
 
-## API
-- Auth: http://localhost:8000/auth/v1
-- REST: http://localhost:8000/rest/v1
-- Storage: http://localhost:8000/storage/v1
-- Studio: http://localhost:3001
-- Admin login: admin / poc_admin_2026
+## Key commands
 
-## Key Commands
-### New POC (fast — 10s)
+### Start shared backend
+```bash
+./start.sh
 ```
+
+### Create a new POC app
+```bash
 ./poc-init.sh <app-name> "App Title"
 ```
-Creates ~/<app-name> with schema, auth, storage, .env, deps installed, dev server on free port.
 
-### Manual fork
-```
-cp -r template-app/ ~/<app-name>
-cd ~/<app-name>
-./supabase/setup-poc-app.sh <app-name> "App Title"
-# edit .env with ANON_KEY
-npm run dev -- --port 4001
+### Manual schema and bucket provisioning
+```bash
+supabase/setup-poc-app.sh <app-name> "App Title"
 ```
 
-### Supabase Management
-- `cd supabase && sudo docker compose up -d` — start
-- `cd supabase && sudo docker compose down` — stop
-- `sudo docker compose up -d --force-recreate rest` — restart PostgREST after schema change
-- `cat migration.sql | sudo docker compose exec -T db psql -U postgres` — run migration
+### Common Supabase management
+```bash
+cd supabase && sudo docker compose up -d
+cd supabase && sudo docker compose down
+sudo docker compose up -d --force-recreate rest
+cat migration.sql | sudo docker compose exec -T db psql -U postgres
+```
 
-## Conventions
-- Pages in src/pages/, stores in src/stores/, components in src/components/
-- Zustand for state, @supabase/supabase-js for API, Tailwind 4 for CSS
-- Every store logs to debugStore: `useDebugStore.getState().add('info', '...')`
-- Toast notifications: `useToastStore.getState().add({ type: 'success'|'error'|'info'|'warning', message })`
-- Ctrl+` opens debug panel showing all API calls and errors
-- RLS disabled during dev (enable only for production)
-- Schema naming: poc_<app_name> (underscores), bucket naming: poc-<app-name> (hyphens)
+## Important URLs
+- Auth: `http://localhost:8000/auth/v1`
+- REST: `http://localhost:8000/rest/v1`
+- Storage: `http://localhost:8000/storage/v1`
+- Studio: `http://localhost:3001`
 
-## Template-app built-in features (free in every fork)
-- Auth (login/register via Supabase, session persistence)
-- AI Chat (streaming markdown with files + voice)
-- Voice input (Web Speech API, id-ID)
-- File upload (drag-drop to Supabase Storage)
-- Toast notification system
-- Debug panel (Ctrl+`)
-- Responsive dark-mode layout (sidebar + mobile bottom nav)
-- Settings (theme toggle, model selection)
+## Frontend conventions
+For both frontend apps:
+- pages live in `src/pages/`
+- reusable UI lives in `src/components/`
+- Zustand stores live in `src/stores/`
+- shared helpers and types live in `src/lib/`
+- Supabase client lives in `src/services/supabase.ts`
+- AI proxy calls live in `src/services/ai-proxy.ts`
+
+Preserve these patterns:
+- useful store and request events should be logged to `useDebugStore`
+- user-facing outcomes should go through `useToastStore`
+- request code should stay aligned with `VITE_SUPABASE_URL`
+- scaffold behavior in `template-app/` should remain reusable and not drift into app-specific logic
+
+## Built-in scaffold capabilities
+`template-app/` already includes these baseline capabilities:
+- authentication
+- session persistence
+- AI chat
+- file upload
+- voice input
+- toast notifications
+- debug panel
+- responsive layout
+- settings page
+
+Prefer extending existing patterns over building parallel systems.
+
+## Safety rules
+- Treat `supabase/.env` and all app `.env` files as sensitive
+- Never print or overwrite secret values casually
+- Do not casually edit `package-lock.json` unless dependency changes are required
+- Do not change Docker service names, Kong routes, or PostgREST schema wiring unless the task explicitly requires it
+- Avoid destructive reset or schema-drop behavior unless explicitly requested
+
+## Validation expectations
+There is no meaningful automated test suite today.
+
+For frontend changes, validate with:
+```bash
+npm run lint
+npm run build
+```
+
+Run validation in the app you changed:
+- `template-app/` for scaffold work
+- `he-inspection/` for live app work
+
+For infrastructure changes, prefer targeted and safe verification rather than destructive restarts.
 
 ## Notes
-- Email auto-confirm is ON (no need for real SMTP)
-- Port 5432 used by Supabase Postgres internally (Docker network only)
-- Edge Functions not configured (ignore restart errors)
-- Realtime may show unhealthy briefly — it works fine after warmup
+- Email auto-confirm is enabled for local development
+- Realtime may appear unhealthy briefly during startup and often recovers after warmup
+- Edge functions are not part of the current working path
+- Keep documentation aligned with scripts rather than introducing parallel manual steps

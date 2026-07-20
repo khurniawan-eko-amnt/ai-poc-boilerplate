@@ -1,0 +1,73 @@
+# Cline rules for `template-app`
+
+## Directory role
+This directory is the **canonical frontend scaffold** for new AI POC applications.
+Changes here should be:
+- reusable across future apps
+- generic rather than inspection-specific
+- aligned with the root workflow and Supabase setup model
+
+If a requested change only makes sense for the current inspection product, it likely belongs in `../he-inspection/` instead.
+
+## Stack and structure
+This app uses:
+- React
+- TypeScript
+- Vite
+- Zustand
+- Supabase client
+- shared UI components and stores
+
+Preserve the existing structure:
+- `src/pages/` for page-level screens
+- `src/components/` for reusable UI
+- `src/stores/` for Zustand state
+- `src/lib/` for shared types and helpers
+- `src/services/supabase.ts` for Supabase access
+- `src/services/ai-proxy.ts` for AI-related requests
+
+## Development workflow
+Preferred scripts:
+```bash
+npm run dev
+npm run lint
+npm run build
+npm run preview
+```
+
+For validation after code changes, prefer:
+1. `npm run lint`
+2. `npm run build`
+
+There is no meaningful automated test suite yet, so lint and build are the required checks for most work.
+
+## Scaffold rules
+- Keep features reusable for future forked apps.
+- Avoid hard-coding inspection-specific domain language unless the task is explicitly about generalizing it.
+- Do not remove existing auth, chat, upload, debug, toast, or settings capabilities unless explicitly requested.
+- Keep defaults compatible with local Supabase behind `VITE_SUPABASE_URL`.
+
+## State and UX conventions
+Preserve existing app patterns:
+- log useful events and failures to `useDebugStore`
+- send user-visible outcomes through `useToastStore`
+- keep store logic cohesive and page components thin where practical
+- prefer extending shared types under `src/lib/` when a feature needs common data shapes
+
+## Editing guidance
+- Make the smallest change that satisfies the task.
+- Prefer updating existing scaffold patterns over introducing parallel implementations.
+- Keep naming neutral and reusable.
+- If a change should also be mirrored in `he-inspection/`, note that explicitly in docs or implement it there separately.
+
+## Safety rules
+- Do not expose secrets from `.env`.
+- Do not casually edit `package-lock.json` unless dependency changes are required.
+- Do not introduce assumptions about production infrastructure that conflict with local self-hosted Supabase.
+
+## Completion checklist
+Before finishing scaffold work:
+- confirm the change is reusable
+- confirm no inspection-only behavior leaked into the scaffold
+- run `npm run lint`
+- run `npm run build`

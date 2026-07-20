@@ -1,0 +1,70 @@
+# Cline rules for `he-inspection`
+
+## Directory role
+This directory is the **active inspection application** built from the shared scaffold.
+Changes here may be application-specific, but they should still respect the underlying scaffold patterns unless there is an intentional reason to diverge.
+
+If a requested change should benefit future POC apps, consider whether it belongs in `../template-app/` instead.
+
+## Stack and structure
+This app uses:
+- React
+- TypeScript
+- Vite
+- Zustand
+- Supabase client
+- inspection-specific pages, stores, and types built on the shared scaffold
+
+Preserve the existing structure:
+- `src/pages/` for route-level screens
+- `src/components/` for reusable UI pieces
+- `src/stores/` for Zustand state
+- `src/lib/` for shared helpers and types
+- `src/services/supabase.ts` for Supabase access
+- `src/services/ai-proxy.ts` for AI-related requests
+
+## Development workflow
+Preferred scripts:
+```bash
+npm run dev
+npm run lint
+npm run build
+npm run preview
+```
+
+For validation after code changes, prefer:
+1. `npm run lint`
+2. `npm run build`
+
+There is no meaningful automated test suite yet, so lint and build are the required checks for most work.
+
+## Application rules
+- Keep inspection workflows and domain terminology local to this app unless the change is intentionally generalized.
+- Reuse scaffold conventions before introducing app-only patterns.
+- Preserve existing authentication, chat, upload, debug, toast, and settings behavior unless the task explicitly requires a change.
+- Keep Supabase requests aligned with `VITE_SUPABASE_URL`.
+
+## State and UX conventions
+Preserve existing app patterns:
+- log useful events and failures to `useDebugStore`
+- send user-visible outcomes through `useToastStore`
+- keep store responsibilities focused
+- prefer shared domain types under `src/lib/` when multiple pages or stores use the same shapes
+
+## Editing guidance
+- Make the smallest change that satisfies the task.
+- Keep inspection-specific behavior inside this app instead of pushing it into the scaffold by default.
+- If a fix here should also exist in `template-app/`, either mirror it intentionally or document why it is app-only.
+- Keep naming and UI copy consistent with inspection workflows.
+
+## Safety rules
+- Do not expose secrets from `.env`.
+- Do not casually edit `package-lock.json` unless dependency changes are required.
+- Do not change backend schema naming, bucket naming, or Supabase environment assumptions without checking root workflow docs.
+
+## Completion checklist
+Before finishing app work:
+- confirm the change belongs in `he-inspection/`
+- confirm no secrets were exposed
+- run `npm run lint`
+- run `npm run build`
