@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Development Report Phase 1 Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --color-primary: #E9F40B;
+      --color-secondary: #C7BDBA;
+      --color-white: #FFFFFF;
+      --color-dark-grey: #403836;
+      --color-black: #000000;
+      --surface: #FFFFFF;
+      --surface-container-lowest: #FFFFFF;
+      --surface-container-low: #F7F5F4;
+      --surface-container: #F0EDEC;
+      --on-surface: #403836;
+      --on-surface-variant: #6B6562;
+      --outline: #B8B0AD;
+      --outline-variant: #D9D3D0;
+      --primary-container: #F4FDD6;
+      --font-headline: "Work Sans", sans-serif;
+      --font-body: "Inter", sans-serif;
+      --sidebar-width: 240px;
+      --topbar-height: 10px;
+      --content-max-width: 1320px;
+      --shadow-soft: 0 18px 40px rgba(64, 56, 54, 0.08);
+      --shadow-card: 0 10px 24px rgba(64, 56, 54, 0.06);
+      --radius-card: 8px;
+      --radius-pill: 9999px;
+      --radius-badge: 4px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      font-weight: 300;
+      color: var(--on-surface);
+      background: var(--surface);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .progress-track {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--topbar-height);
+      background: rgba(199, 189, 186, 0.35);
+      z-index: 40;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--color-primary);
+      transition: width 0.15s ease-out;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+      background: var(--surface);
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: var(--topbar-height) auto 0 0;
+      width: var(--sidebar-width);
+      background: var(--surface-container-low);
+      border-right: 1px solid var(--outline-variant);
+      padding: 28px 20px 24px;
+      overflow-y: auto;
+      z-index: 20;
+    }
+
+    .sidebar-brand {
+      margin-bottom: 28px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--outline-variant);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+      margin-bottom: 10px;
+    }
+
+    .sidebar h1 {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--color-dark-grey);
+    }
+
+    .sidebar-meta {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--on-surface-variant);
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-link {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: var(--on-surface-variant);
+      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .nav-link:hover {
+      background: var(--primary-container);
+      color: var(--color-dark-grey);
+      transform: translateX(2px);
+    }
+
+    .nav-link.active {
+      background: var(--color-dark-grey);
+      color: var(--color-white);
+      box-shadow: var(--shadow-card);
+    }
+
+    .nav-number {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(64, 56, 54, 0.08);
+      font-family: var(--font-headline);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .nav-link.active .nav-number {
+      background: var(--color-primary);
+      color: var(--color-black);
+    }
+
+    .nav-text {
+      display: grid;
+      gap: 4px;
+    }
+
+    .nav-title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .nav-subtitle {
+      font-size: 11px;
+      line-height: 1.4;
+      opacity: 0.84;
+    }
+
+    .main {
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+    }
+
+    .slides {
+      width: 100%;
+    }
+
+    .slide {
+      min-height: 100vh;
+      scroll-margin-top: 28px;
+      padding: 52px 40px 44px;
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid var(--outline-variant);
+    }
+
+    .slide-inner {
+      width: 100%;
+      max-width: var(--content-max-width);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .slide-cover {
+      background:
+        linear-gradient(135deg, rgba(64, 56, 54, 0.96), rgba(64, 56, 54, 0.9)),
+        linear-gradient(180deg, rgba(233, 244, 11, 0.12), rgba(255, 255, 255, 0));
+      color: var(--color-white);
+    }
+
+    .slide-cover .eyebrow,
+    .slide-cover .lede,
+    .slide-cover .meta-chip {
+      color: var(--color-white);
+    }
+
+    .slide-cover .eyebrow {
+      opacity: 0.88;
+    }
+
+    .headline {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: clamp(40px, 5vw, 64px);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: clamp(30px, 3vw, 42px);
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--color-dark-grey);
+      letter-spacing: -0.01em;
+    }
+
+    .section-title.compact {
+      font-size: clamp(26px, 2.5vw, 34px);
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 880px;
+      font-size: 18px;
+      line-height: 1.7;
+      color: var(--on-surface-variant);
+    }
+
+    .cover-grid,
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .cover-grid,
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .meta-chip,
+    .card,
+    .metric-card,
+    .highlight,
+    .timeline-card,
+    .service-card {
+      border-radius: var(--radius-card);
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-container-low);
+      box-shadow: var(--shadow-card);
+    }
+
+    .meta-chip {
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.14);
+      box-shadow: none;
+    }
+
+    .meta-label,
+    .card-label,
+    .metric-label,
+    .timeline-label,
+    .stat-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+      margin-bottom: 10px;
+    }
+
+    .meta-value {
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .card,
+    .metric-card,
+    .timeline-card,
+    .service-card {
+      padding: 20px;
+    }
+
+    .card h3,
+    .metric-value,
+    .timeline-card h3,
+    .service-card h3,
+    .highlight h3 {
+      margin: 0 0 10px;
+      font-family: var(--font-headline);
+      color: var(--color-dark-grey);
+    }
+
+    .card h3,
+    .timeline-card h3,
+    .service-card h3,
+    .highlight h3 {
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .card p,
+    .card li,
+    .timeline-card p,
+    .timeline-card li,
+    .service-card p,
+    .service-card li,
+    .highlight p,
+    .highlight li {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--on-surface);
+    }
+
+    .card ul,
+    .timeline-card ul,
+    .service-card ul,
+    .highlight ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .metric-card {
+      padding: 22px 20px;
+      background: var(--surface);
+    }
+
+    .metric-value {
+      font-size: clamp(28px, 3vw, 38px);
+      font-weight: 700;
+      line-height: 1.05;
+    }
+
+    .metric-subtext {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--on-surface-variant);
+    }
+
+    .highlight {
+      padding: 22px;
+      background: linear-gradient(180deg, var(--primary-container), var(--surface));
+      border-left: 6px solid var(--color-primary);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-dark-grey);
+    }
+
+    .pill strong {
+      font-weight: 700;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 1.1fr 72px 1.1fr 72px 1.1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .flow-box {
+      border-radius: var(--radius-card);
+      padding: 20px;
+      border: 1px solid var(--outline-variant);
+      background: var(--surface-container-low);
+      min-height: 220px;
+    }
+
+    .flow-box.dark {
+      background: var(--color-dark-grey);
+      color: var(--color-white);
+      border-color: var(--color-dark-grey);
+    }
+
+    .flow-box.primary {
+      background: var(--primary-container);
+      border-color: rgba(233, 244, 11, 0.8);
+    }
+
+    .flow-box h3 {
+      margin: 0 0 10px;
+      font-family: var(--font-headline);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .flow-box p,
+    .flow-box li {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .flow-box ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      color: var(--color-dark-grey);
+      opacity: 0.7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    thead th {
+      background: var(--color-dark-grey);
+      color: var(--color-white);
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.55;
+      border-bottom: 1px solid var(--outline-variant);
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(odd) td {
+      background: var(--surface);
+    }
+
+    tbody tr:nth-child(even) td {
+      background: var(--surface-container-low);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-card);
+    }
+
+    .footnote {
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--on-surface-variant);
+    }
+
+    .comparison-banner {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .banner-card {
+      padding: 22px;
+      border-radius: var(--radius-card);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      box-shadow: var(--shadow-card);
+    }
+
+    .banner-card.primary {
+      background: linear-gradient(180deg, rgba(233, 244, 11, 0.48), var(--surface));
+      border-left: 6px solid var(--color-primary);
+    }
+
+    .banner-card h3 {
+      margin: 0 0 10px;
+      font-family: var(--font-headline);
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .banner-card p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .timeline-card {
+      position: relative;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .timeline-card .step-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: var(--color-black);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .repo-tree {
+      white-space: pre-wrap;
+      margin: 0;
+      padding: 20px;
+      border-radius: var(--radius-card);
+      background: var(--color-dark-grey);
+      color: var(--color-white);
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-x: auto;
+      box-shadow: var(--shadow-card);
+    }
+
+    .closing-panel {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .closing-callout {
+      padding: 26px;
+      border-radius: var(--radius-card);
+      background: var(--color-dark-grey);
+      color: var(--color-white);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .closing-callout h3 {
+      margin: 0 0 12px;
+      font-family: var(--font-headline);
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .closing-callout p,
+    .closing-callout li {
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .closing-callout ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--color-primary);
+      color: var(--color-black);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .muted {
+      color: var(--on-surface-variant);
+    }
+
+    .mobile-nav-toggle {
+      display: none;
+      position: fixed;
+      right: 16px;
+      top: 22px;
+      z-index: 50;
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: var(--color-dark-grey);
+      color: var(--color-white);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow-card);
+      cursor: pointer;
+    }
+
+    @media (max-width: 1180px) {
+      .grid-4,
+      .timeline,
+      .service-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-arrow {
+        transform: rotate(90deg);
+        min-height: 40px;
+      }
+
+      .comparison-banner,
+      .closing-panel,
+      .grid-3,
+      .grid-2,
+      .cover-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 920px) {
+      .mobile-nav-toggle {
+        display: inline-flex;
+      }
+
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+        width: min(88vw, 320px);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .slide {
+        padding: 64px 20px 32px;
+      }
+
+      .service-grid,
+      .timeline,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-track" aria-hidden="true">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-expanded="false" aria-controls="sidebar">
+    Slides
+  </button>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="eyebrow">Phase 1 presentation</div>
+        <h1>AI POC Boilerplate Development Report</h1>
+        <div class="sidebar-meta">
+          <div><strong>Period:</strong> July 13–19, 2026</div>
+          <div><strong>Scope:</strong> Infra + scaffold + first POC</div>
+          <div><strong>Prepared by:</strong> Hermes Agent / Khurniawan Eko</div>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Presentation slides">
+        <a class="nav-link" href="#slide-1">
+          <span class="nav-number">01</span>
+          <span class="nav-text">
+            <span class="nav-title">Executive headline</span>
+            <span class="nav-subtitle">Phase 1 outcome</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-2">
+          <span class="nav-number">02</span>
+          <span class="nav-text">
+            <span class="nav-title">Why this phase mattered</span>
+            <span class="nav-subtitle">Problem and goal</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-3">
+          <span class="nav-number">03</span>
+          <span class="nav-text">
+            <span class="nav-title">What was built</span>
+            <span class="nav-subtitle">Three-layer delivery</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-4">
+          <span class="nav-number">04</span>
+          <span class="nav-text">
+            <span class="nav-title">Cost and effort</span>
+            <span class="nav-subtitle">Economic profile</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-5">
+          <span class="nav-number">05</span>
+          <span class="nav-text">
+            <span class="nav-title">First POC validation</span>
+            <span class="nav-subtitle">Why he-inspection first</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-6">
+          <span class="nav-number">06</span>
+          <span class="nav-text">
+            <span class="nav-title">Deeper he-inspection</span>
+            <span class="nav-subtitle">Workflow and proof points</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-7">
+          <span class="nav-number">07</span>
+          <span class="nav-text">
+            <span class="nav-title">Architecture</span>
+            <span class="nav-subtitle">Reusable platform model</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-8">
+          <span class="nav-number">08</span>
+          <span class="nav-text">
+            <span class="nav-title">Productivity comparison</span>
+            <span class="nav-subtitle">Manual vs Hermes</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-9">
+          <span class="nav-number">09</span>
+          <span class="nav-text">
+            <span class="nav-title">Assets delivered</span>
+            <span class="nav-subtitle">Repository and services</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-10">
+          <span class="nav-number">10</span>
+          <span class="nav-text">
+            <span class="nav-title">Next phases</span>
+            <span class="nav-subtitle">Hardening and scale</span>
+          </span>
+        </a>
+        <a class="nav-link" href="#slide-11">
+          <span class="nav-number">11</span>
+          <span class="nav-text">
+            <span class="nav-title">Closing recommendation</span>
+            <span class="nav-subtitle">Continue and replicate</span>
+          </span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="slides">
+        <section class="slide slide-cover" id="slide-1">
+          <div class="slide-inner">
+            <div class="eyebrow">Development report · phase 1</div>
+            <h2 class="headline">A reusable AI POC platform was delivered in 7 days, validated by the first live application: <em>he-inspection</em>.</h2>
+            <p class="lede">
+              Phase 1 established a self-hosted Supabase backend, a reusable frontend scaffold, and a production-style heavy equipment inspection POC that proves the model can accelerate future applications without rebuilding backend services each time.
+            </p>
+            <div class="cover-grid">
+              <div class="meta-chip">
+                <div class="meta-label">Project</div>
+                <div class="meta-value">AI POC Boilerplate + Supabase Backend + he-inspection App</div>
+              </div>
+              <div class="meta-chip">
+                <div class="meta-label">Period</div>
+                <div class="meta-value">July 13, 2026 – July 19, 2026</div>
+              </div>
+              <div class="meta-chip">
+                <div class="meta-label">Agent / Model</div>
+                <div class="meta-value">Hermes Agent · DeepSeek-V4-Flash via Azure Foundry</div>
+              </div>
+              <div class="meta-chip">
+                <div class="meta-label">Developer</div>
+                <div class="meta-value">Khurniawan Eko</div>
+              </div>
+            </div>
+            <div class="pill-row">
+              <span class="pill"><strong>19,048</strong> total LOC</span>
+              <span class="pill"><strong>118</strong> source files</span>
+              <span class="pill"><strong>11</strong> running containers</span>
+              <span class="pill"><strong>$27.60</strong> direct project cost</span>
+              <span class="pill"><strong>4×</strong> faster than a mid-level manual build</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-2">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">Why this phase mattered</div>
+              <h2 class="section-title">The original POC approach worked once, but it was too expensive and too repetitive to scale across multiple mining use cases.</h2>
+            </div>
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-label">Problem</div>
+                <h3>Every new POC meant rebuilding the same backend foundations.</h3>
+                <ul>
+                  <li>Manual Postgres provisioning for each app</li>
+                  <li>Custom FastAPI backend for auth, CRUD, and storage</li>
+                  <li>Frontend rework from scratch for every initiative</li>
+                  <li>Separate Docker deployment and environment handling per app</li>
+                  <li>Typical delivery cycle of roughly 2–3 weeks per POC</li>
+                </ul>
+              </div>
+              <div class="card">
+                <div class="card-label">Goal</div>
+                <h3>Create a “fork once, build fast” delivery model.</h3>
+                <ul>
+                  <li>One reusable shared backend using self-hosted Supabase</li>
+                  <li>One template scaffold with auth, chat, voice, and file handling already in place</li>
+                  <li>One concrete POC to prove the pattern end-to-end in a realistic field workflow</li>
+                  <li>Support self-hosted, mobile-first, Bahasa Indonesia usage constraints</li>
+                </ul>
+              </div>
+            </div>
+            <div class="highlight">
+              <div class="card-label">Recommendation logic</div>
+              <h3>Phase 1 was not just about shipping an app; it was about removing repeated backend effort from future POC delivery.</h3>
+              <p>
+                The strategic value is the reusable platform layer. The first application matters because it demonstrates that the shared backend, scaffold, and deployment pattern can carry real operational complexity, not just a toy demo.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-3">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">What was built</div>
+              <h2 class="section-title">Phase 1 delivered a three-layer system that can be reused for future POCs with minimal backend effort.</h2>
+            </div>
+            <div class="grid-3">
+              <div class="card">
+                <div class="card-label">Layer 1 · Infrastructure</div>
+                <h3>Self-hosted Supabase stack</h3>
+                <p>
+                  Dockerized backend services for Auth, Postgres via PostgREST, Storage, Realtime, and Studio admin UI behind Kong, running on an Azure VM and structured for multi-POC reuse.
+                </p>
+              </div>
+              <div class="card">
+                <div class="card-label">Layer 2 · Boilerplate</div>
+                <h3><code>template-app/</code> scaffold</h3>
+                <p>
+                  A forkable React + Vite + TypeScript application starter with authentication, chat, voice input, file upload, settings, and debug tooling already wired to the shared backend.
+                </p>
+              </div>
+              <div class="card">
+                <div class="card-label">Layer 3 · First POC</div>
+                <h3><code>he-inspection/</code> validation app</h3>
+                <p>
+                  A CAT793 heavy equipment inspection PWA with 17 pages, a 60-question template, offline support, voice input, media capture, defects, and reporting workflows.
+                </p>
+              </div>
+            </div>
+            <div class="grid-4">
+              <div class="metric-card">
+                <div class="metric-label">Total LOC</div>
+                <div class="metric-value">19,048</div>
+                <div class="metric-subtext">Project-wide codebase delivered in Phase 1</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">he-inspection</div>
+                <div class="metric-value">7,381</div>
+                <div class="metric-subtext">17 pages, 6 stores, 5 components</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">template-app</div>
+                <div class="metric-value">2,040</div>
+                <div class="metric-subtext">6 pages, 4 stores, 4 components</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Supabase config</div>
+                <div class="metric-value">2,566</div>
+                <div class="metric-subtext">Compose, Kong, schema templates, setup scripts</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-4">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">Cost and effort</div>
+              <h2 class="section-title">The first platform and first live POC were delivered with very low direct cost and limited human time.</h2>
+            </div>
+            <div class="comparison-banner">
+              <div class="banner-card primary">
+                <div class="card-label">Direct cost</div>
+                <h3>$27.60 total</h3>
+                <p>
+                  Estimated direct spend comprised <strong>$12.60</strong> of project-attributed AI API usage and roughly <strong>$15.00</strong> of allocable infrastructure cost on the shared Azure VM.
+                </p>
+              </div>
+              <div class="banner-card">
+                <div class="card-label">Hermes active work</div>
+                <h3>~25 hours</h3>
+                <p>Discovery, backend setup, scaffold creation, he-inspection build, debugging, and deployment polish across 7 calendar days.</p>
+              </div>
+              <div class="banner-card">
+                <div class="card-label">User active work</div>
+                <h3>~3 hours</h3>
+                <p>High-level direction, architecture calls, validation, and approval decisions rather than implementation labor.</p>
+              </div>
+            </div>
+            <div class="grid-3">
+              <div class="metric-card">
+                <div class="metric-label">Sessions</div>
+                <div class="metric-value">37</div>
+                <div class="metric-subtext">Approximately 16 project-focused sessions</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Messages</div>
+                <div class="metric-value">~2,900</div>
+                <div class="metric-subtext">Project-attributed exchanges out of 4,427 total</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Tool calls</div>
+                <div class="metric-value">~1,500</div>
+                <div class="metric-subtext">Estimated project-specific execution volume</div>
+              </div>
+            </div>
+            <div class="footnote">
+              Cost figures are estimates derived from session records and Azure Foundry pricing assumptions in the source report. VM cost allocation reflects only the marginal usage of the Supabase stack relative to other workloads on the same host.
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-5">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">First POC validation</div>
+              <h2 class="section-title">he-inspection was the right first POC because it stress-tested the platform with real field complexity, not a simple dashboard demo.</h2>
+            </div>
+            <div class="grid-3">
+              <div class="card">
+                <div class="card-label">Why this use case first</div>
+                <h3>Operationally rich, but still bounded</h3>
+                <p>
+                  Heavy equipment inspections combine user workflows, structured forms, media, offline behavior, and defect traceability in one product. That makes the use case challenging enough to validate the platform while still narrow enough to deliver quickly.
+                </p>
+              </div>
+              <div class="card">
+                <div class="card-label">Business relevance</div>
+                <h3>Directly aligned to mining operations</h3>
+                <p>
+                  The app targets CAT793 truck inspections, a real operational process where missed defects, slow reporting, and disconnected field data can create reliability, safety, and productivity issues.
+                </p>
+              </div>
+              <div class="card">
+                <div class="card-label">Platform proof point</div>
+                <h3>Tests all reusable assumptions at once</h3>
+                <p>
+                  If the shared backend and scaffold can support mobile auth, form persistence, storage, voice, workflow state, and reporting here, they can likely support a broad class of future POC applications.
+                </p>
+              </div>
+            </div>
+            <div class="highlight">
+              <div class="card-label">Executive interpretation</div>
+              <h3>he-inspection is more than the first application; it is the validation vehicle for the entire delivery model.</h3>
+              <p>
+                The choice was important because it forced the platform to support field realities such as intermittent connectivity, Bahasa Indonesia voice capture, structured inspection logic, and media-backed evidence collection from day one.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-6">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">Deeper he-inspection explanation</div>
+              <h2 class="section-title">The first POC demonstrates a realistic inspection operating model from walkaround capture through defect escalation and reporting.</h2>
+            </div>
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-label">User workflow depth</div>
+                <h3>Far beyond a simple CRUD prototype</h3>
+                <ul>
+                  <li>17 pages covering dashboard, equipment, inspection, templates, defects, documents, and reports</li>
+                  <li>60-question inspection template with OK / Defect / Pause paths</li>
+                  <li>Media capture and upload to support evidence-based findings</li>
+                  <li>Offline-first support to tolerate field connectivity issues</li>
+                  <li>Voice input in Bahasa Indonesia for tablet-based operators</li>
+                </ul>
+              </div>
+              <div class="card">
+                <div class="card-label">Why this matters technically</div>
+                <h3>It exercises the platform end-to-end</h3>
+                <ul>
+                  <li>Auth and session persistence for field users</li>
+                  <li>Schema-driven inspection data in a dedicated app schema</li>
+                  <li>Storage bucket usage for media assets</li>
+                  <li>State management across long inspection flows</li>
+                  <li>Responsive, PWA-style mobile interface for operational usage</li>
+                </ul>
+              </div>
+            </div>
+            <div class="grid-3">
+              <div class="metric-card">
+                <div class="metric-label">Application LOC</div>
+                <div class="metric-value">7,381</div>
+                <div class="metric-subtext">Largest frontend workload in Phase 1</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Pages</div>
+                <div class="metric-value">17</div>
+                <div class="metric-subtext">Broad route coverage for a first POC</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Database tables</div>
+                <div class="metric-value">13</div>
+                <div class="metric-subtext">Within the <code>poc_he_inspection</code> schema</div>
+              </div>
+            </div>
+            <div class="highlight">
+              <div class="card-label">Platform implication</div>
+              <h3>If the boilerplate can support this inspection workflow, the next POCs can start from a much higher baseline.</h3>
+              <p>
+                Future applications should be able to inherit the same auth, storage, chat, voice, and deployment scaffolding, shifting effort away from plumbing and toward domain-specific workflow design.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-7">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">Architecture</div>
+              <h2 class="section-title">The platform architecture separates shared capabilities from app-specific workflows, enabling faster repeatable POC delivery.</h2>
+            </div>
+            <div class="flow">
+              <div class="flow-box">
+                <div class="card-label">Shared backend</div>
+                <h3>Supabase infrastructure</h3>
+                <ul>
+                  <li>Auth</li>
+                  <li>Postgres via PostgREST</li>
+                  <li>Storage</li>
+                  <li>Realtime</li>
+                  <li>Studio admin UI</li>
+                  <li>Kong API gateway</li>
+                </ul>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-box dark">
+                <div class="card-label">Reusable frontend base</div>
+                <h3>template-app scaffold</h3>
+                <ul>
+                  <li>React + Vite + TypeScript foundation</li>
+                  <li>Login/register/session flows</li>
+                  <li>Chat, voice, file upload, settings</li>
+                  <li>Debug panel and shared service patterns</li>
+                </ul>
+              </div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-box primary">
+                <div class="card-label">Domain application</div>
+                <h3>he-inspection POC</h3>
+                <ul>
+                  <li>Inspection templates and responses</li>
+                  <li>Equipment and defect workflows</li>
+                  <li>Offline-friendly field operations</li>
+                  <li>Reporting and operational records</li>
+                </ul>
+              </div>
+            </div>
+            <div class="pill-row">
+              <span class="pill"><strong>1</strong> shared backend</span>
+              <span class="pill"><strong>1</strong> canonical scaffold</span>
+              <span class="pill"><strong>n</strong> future POC applications</span>
+              <span class="pill"><strong>0</strong> required custom backend for standard use cases</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-8">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">Productivity comparison</div>
+              <h2 class="section-title">Compared with a mid-level fullstack build, Hermes compressed delivery time, reduced human effort, and preserved broad feature coverage.</h2>
+            </div>
+            <div class="grid-4">
+              <div class="metric-card">
+                <div class="metric-label">Development time</div>
+                <div class="metric-value">4× faster</div>
+                <div class="metric-subtext">25 hours vs 100 manual hours</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Human effort</div>
+                <div class="metric-value">33× less</div>
+                <div class="metric-subtext">3 user hours vs 100 developer hours</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Calendar speed</div>
+                <div class="metric-value">~2× faster</div>
+                <div class="metric-subtext">7 days vs 12–15 days to MVP</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Tool cost delta</div>
+                <div class="metric-value">~226× cheaper</div>
+                <div class="metric-subtext">$27.60 tools vs ~$6,250 manual delivery estimate</div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Feature area</th>
+                    <th>Manual standard</th>
+                    <th>Hermes result</th>
+                    <th>Verdict</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Auth + session</td>
+                    <td>Full</td>
+                    <td>Full + auto-persist</td>
+                    <td>Equal</td>
+                  </tr>
+                  <tr>
+                    <td>17-page SPA</td>
+                    <td>Full</td>
+                    <td>All pages built</td>
+                    <td>Equal</td>
+                  </tr>
+                  <tr>
+                    <td>Offline support</td>
+                    <td>Often partial due to time</td>
+                    <td>Integrated</td>
+                    <td>Better</td>
+                  </tr>
+                  <tr>
+                    <td>Debug panel</td>
+                    <td>Often skipped</td>
+                    <td>Built in</td>
+                    <td>Better</td>
+                  </tr>
+                  <tr>
+                    <td>Documentation</td>
+                    <td>Usually minimal</td>
+                    <td>README + AGENTS + docs</td>
+                    <td>Better</td>
+                  </tr>
+                  <tr>
+                    <td>Deployment + git history</td>
+                    <td>Expected</td>
+                    <td>Delivered</td>
+                    <td>Equal</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="footnote">
+              The comparison uses the report’s stated mid-level fullstack benchmark and should be read as directional productivity analysis rather than a formal procurement estimate.
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-9">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">Assets delivered</div>
+              <h2 class="section-title">Phase 1 ended with a reusable repository structure and live services already running.</h2>
+            </div>
+            <div class="grid-2">
+              <div>
+                <pre class="repo-tree">ai-poc-boilerplate/
+├── supabase/
+│   ├── docker-compose.yml
+│   ├── volumes/api/kong.yml
+│   ├── templates/poc-schema-template.sql
+│   └── setup-poc-app.sh
+├── template-app/
+│   ├── src/pages/
+│   ├── src/stores/
+│   ├── src/components/
+│   └── src/services/
+├── he-inspection/
+│   ├── src/pages/ (17 pages)
+│   ├── src/stores/
+│   ├── src/components/
+│   ├── migrations/001-initial-schema.sql
+│   └── docs/
+├── README.md
+├── AGENTS.md
+└── .gitignore</pre>
+              </div>
+              <div class="service-grid">
+                <div class="service-card">
+                  <div class="card-label">Gateway</div>
+                  <h3>Kong</h3>
+                  <p><code>:8000</code><br />Running and routing Supabase APIs</p>
+                </div>
+                <div class="service-card">
+                  <div class="card-label">Auth</div>
+                  <h3>Auth API</h3>
+                  <p><code>/auth/v1</code><br />Healthy</p>
+                </div>
+                <div class="service-card">
+                  <div class="card-label">REST</div>
+                  <h3>PostgREST</h3>
+                  <p><code>/rest/v1</code><br />Healthy</p>
+                </div>
+                <div class="service-card">
+                  <div class="card-label">Storage</div>
+                  <h3>Storage API</h3>
+                  <p><code>/storage/v1</code><br />Healthy</p>
+                </div>
+                <div class="service-card">
+                  <div class="card-label">App</div>
+                  <h3>he-inspection</h3>
+                  <p><code>:4000</code><br />Production serve running</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-10">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">Next phases</div>
+              <h2 class="section-title">The highest-value next step is to harden the platform, then expand into AI proxy, analytics, and deeper mobile capability.</h2>
+            </div>
+            <div class="timeline">
+              <div class="timeline-card">
+                <div class="step-badge">01</div>
+                <div class="timeline-label">Phase 2</div>
+                <h3>Production hardening</h3>
+                <ul>
+                  <li>SSL certificate</li>
+                  <li>Custom domain</li>
+                  <li>Proper RLS policies</li>
+                  <li>Rate limiting</li>
+                </ul>
+                <p class="muted">Est. 3–4 sessions · $5–10 API</p>
+              </div>
+              <div class="timeline-card">
+                <div class="step-badge">02</div>
+                <div class="timeline-label">Phase 3</div>
+                <h3>AI proxy layer</h3>
+                <ul>
+                  <li>FastAPI proxy for LLM calls</li>
+                  <li>Streaming and logging</li>
+                  <li>Fallback orchestration</li>
+                </ul>
+                <p class="muted">Est. 4–5 sessions · $5–10 API</p>
+              </div>
+              <div class="timeline-card">
+                <div class="step-badge">03</div>
+                <div class="timeline-label">Phase 4</div>
+                <h3>Analytics</h3>
+                <ul>
+                  <li>Completion time trends</li>
+                  <li>Defect trend analysis</li>
+                  <li>Reliability dashboards</li>
+                </ul>
+                <p class="muted">Est. 5–6 sessions · $5–15 API</p>
+              </div>
+              <div class="timeline-card">
+                <div class="step-badge">04</div>
+                <div class="timeline-label">Phase 5</div>
+                <h3>Mobile PWA depth</h3>
+                <ul>
+                  <li>Install prompts</li>
+                  <li>Background sync</li>
+                  <li>Push notifications</li>
+                  <li>Camera API improvements</li>
+                </ul>
+                <p class="muted">Est. 3–4 sessions · $5–10 API</p>
+              </div>
+              <div class="timeline-card">
+                <div class="step-badge">05</div>
+                <div class="timeline-label">Scaling logic</div>
+                <h3>Replicate to new POCs</h3>
+                <ul>
+                  <li>Fork from template-app</li>
+                  <li>Provision schema + bucket</li>
+                  <li>Focus only on domain workflows</li>
+                </ul>
+                <p class="muted">Strategic benefit: reduced setup overhead</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide" id="slide-11">
+          <div class="slide-inner">
+            <div>
+              <div class="eyebrow">Closing recommendation</div>
+              <h2 class="section-title">Continue with Phase 2 and use the same platform model for subsequent mining POCs.</h2>
+            </div>
+            <div class="closing-panel">
+              <div class="closing-callout">
+                <span class="tag">Recommendation</span>
+                <h3>Proceed because the first POC has already demonstrated real operational and technical viability.</h3>
+                <ul>
+                  <li>The shared backend is live and reusable.</li>
+                  <li>The scaffold already removes repeated frontend setup work.</li>
+                  <li>he-inspection proves the model can handle non-trivial field workflows.</li>
+                  <li>Next initiatives can start from a significantly higher baseline.</li>
+                </ul>
+              </div>
+              <div class="card">
+                <div class="card-label">What success means next</div>
+                <h3>Move from validation to repeatability.</h3>
+                <p>
+                  The immediate objective is not to rebuild another app from scratch. It is to harden the platform, capture the reusable patterns, and apply them to the next POC with materially less setup time and materially less backend work.
+                </p>
+              </div>
+            </div>
+            <div class="footnote">
+              Based on <code>docs/development_report_phase1.md</code>, adapted into AMMAN presentation format with additional emphasis on <code>he-inspection/</code> as the first development validation case.
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const slideSections = Array.from(document.querySelectorAll(".slide"));
+    const navLinks = Array.from(document.querySelectorAll(".nav-link"));
+    const progressBar = document.getElementById("progressBar");
+    const sidebar = document.getElementById("sidebar");
+    const mobileToggle = document.getElementById("mobileNavToggle");
+
+    const linkById = new Map(
+      navLinks.map((link) => [link.getAttribute("href").slice(1), link])
+    );
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (!visible) return;
+
+        navLinks.forEach((link) => link.classList.remove("active"));
+        const activeLink = linkById.get(visible.target.id);
+        if (activeLink) activeLink.classList.add("active");
+      },
+      {
+        root: null,
+        threshold: [0.25, 0.5, 0.7],
+      }
+    );
+
+    slideSections.forEach((section) => observer.observe(section));
+
+    const updateProgress = () => {
+      const scrollTop = window.scrollY;
+      const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = documentHeight > 0 ? (scrollTop / documentHeight) * 100 : 0;
+      progressBar.style.width = Math.min(100, Math.max(0, progress)) + "%";
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+
+    navLinks.forEach((link) => {
+      link.addEventListener("click", () => {
+        if (window.innerWidth <= 920) {
+          sidebar.classList.remove("open");
+          mobileToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+
+    mobileToggle.addEventListener("click", () => {
+      const isOpen = sidebar.classList.toggle("open");
+      mobileToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+  </script>
+</body>
+</html>
