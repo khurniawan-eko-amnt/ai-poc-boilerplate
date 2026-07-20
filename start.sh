@@ -5,9 +5,42 @@
 set -e
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
+SUPABASE_DIR="${DIR}/supabase"
+SUPABASE_ENV="${SUPABASE_DIR}/.env"
+
+require_env_var() {
+  local key="$1"
+  local value
+  value="$(grep "^${key}=" "${SUPABASE_ENV}" | head -1 | cut -d= -f2-)"
+  if [ -z "${value}" ] || [[ "${value}" == *change-me* ]] || [ "${value}" = "stub" ]; then
+    echo "❌ Invalid Supabase config: ${key} is missing or still a placeholder in ${SUPABASE_ENV}"
+    return 1
+  fi
+  return 0
+}
+
 echo "🚀 Starting Supabase..."
-cd "${DIR}/supabase"
-cp .env.example .env 2>/dev/null || true
+cd "${SUPABASE_DIR}"
+
+if [ ! -f "${SUPABASE_ENV}" ]; then
+  cp .env.example .env
+  echo "❌ Created ${SUPABASE_ENV} from .env.example"
+  echo "   Update the required secrets and storage settings before starting Supabase."
+  exit 1
+fi
+
+require_env_var POSTGRES_PASSWORD
+require_env_var JWT_SECRET
+require_env_var ANON_KEY
+require_env_var SERVICE_ROLE_KEY
+require_env_var SECRET_KEY_BASE
+require_env_var DASHBOARD_PASSWORD
+require_env_var S3_PROTOCOL_ACCESS_KEY_ID
+require_env_var S3_PROTOCOL_ACCESS_KEY_SECRET
+require_env_var GLOBAL_S3_BUCKET
+require_env_var REGION
+require_env_var STORAGE_TENANT_ID
+
 sudo docker compose --env-file .env -f docker-compose.yml up -d
 
 echo ""
