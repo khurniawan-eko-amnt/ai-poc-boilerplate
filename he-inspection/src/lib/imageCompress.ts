@@ -1,10 +1,11 @@
 // ─── Client-side image compression ─────────────────────────
 // Compresses images to ≤1MB before upload to Supabase Storage.
 // Uses Canvas API — works in all modern browsers without extra deps.
+// Always outputs JPEG for consistent browser rendering cross-device.
 
 /**
  * Compress an image File to ≤1MB (configurable).
- * Returns a Blob (File-compatible for upload).
+ * Always converts to JPEG regardless of input format.
  */
 export function compressImage(
   file: File,
@@ -12,14 +13,8 @@ export function compressImage(
   maxDimension: number = 1920,
 ): Promise<File> {
   return new Promise<File>((resolve) => {
-    // Only compress images
+    // Skip non-images (videos, etc.)
     if (!file.type.startsWith('image/')) {
-      resolve(file)
-      return
-    }
-
-    // If already small enough, skip compression
-    if (file.size <= maxBytes) {
       resolve(file)
       return
     }
