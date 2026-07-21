@@ -1,0 +1,137 @@
+# =============================================================================
+# Supabase Self-Hosted — Environment Configuration
+# =============================================================================
+# AUTO-GENERATED: DO NOT COMMIT. Re-generate with: cp .env.example .env && edit
+# =============================================================================
+
+# ─── Compose File ──────────────────────────────────────────
+COMPOSE_FILE=docker-compose.yml
+
+# ─── Secrets ────────────────────────────────────────────────
+POSTGRES_PASSWORD=supabase_admin_poc_2026
+JWT_SECRET=09Gjbs0IvXxMfY+ClLLCPDZ8/1dm30H4VkyPcNe+
+ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzA0MDAwMDAwLCJleHAiOjE5NDk2NTU2MDB9.XCp5knzy_Wq-4le0297FPDdbakefF6wQmphUtN-XhXiQ
+SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3MDQwMDAwMDAsImV4cCI6MTk0OTY1NTYwMH0.X4LXJZAsvmYnPGx6bwKMhn5TGq2MsE0ysFfGtyalr3Y
+SECRET_KEY_BASE=R3nsS24jvhrzLkEj9rBXbcHPq7UqTGEtXh5bVyKnfn6QgqgRbT2z7FM8a3y72V+R
+REALTIME_DB_ENC_KEY=ec45553fe87e5f45
+VAULT_ENC_KEY=ff080191096e7ced0729107039f284b4
+PG_META_CRYPTO_KEY=Fc+OnEjPvMyIjRZEwD21pai1EWSJkZef
+DASHBOARD_USERNAME=admin
+DASHBOARD_PASSWORD=poc_admin_2026
+
+SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
+ANON_KEY_ASYMMETRIC=
+SERVICE_ROLE_KEY_ASYMMETRIC=
+OPENAI_API_KEY=
+
+S3_PROTOCOL_ACCESS_KEY_ID=d661b9304732f3b8033355d9c3e0f97d
+S3_PROTOCOL_ACCESS_KEY_SECRET=2eea3e32171231348f04854c7d629397166bf4120625fa5be2fbb189c0cebd25
+LOGFLARE_PUBLIC_ACCESS_TOKEN=
+LOGFLARE_PRIVATE_ACCESS_TOKEN=
+MINIO_ROOT_PASSWORD=secret1234
+
+# ─── Ports ──────────────────────────────────────────────────
+KONG_HTTP_PORT=8000
+KONG_HTTPS_PORT=8443
+POSTGRES_PORT=5432
+
+# ─── URLs ──────────────────────────────────────────────────
+SUPABASE_PUBLIC_URL=http://104.215.187.68:8000
+API_EXTERNAL_URL=http://104.215.187.68:8000/auth/v1
+SITE_URL=http://104.215.187.68:80
+ADDITIONAL_REDIRECT_URLS=http://104.215.187.68:8080
+
+# ─── Studio ────────────────────────────────────────────────
+STUDIO_DEFAULT_ORGANIZATION=POC Workspace
+STUDIO_DEFAULT_PROJECT=AI POC Backend
+
+# ─── Database ──────────────────────────────────────────────
+POSTGRES_HOST=db
+POSTGRES_DB=postgres
+
+# ─── Auth ──────────────────────────────────────────────────
+JWT_EXPIRY=3600
+DISABLE_SIGNUP=false
+ENABLE_EMAIL_SIGNUP=true
+ENABLE_EMAIL_AUTOCONFIRM=true
+ENABLE_ANONYMOUS_USERS=false
+
+MAILER_URLPATHS_CONFIRMATION="/auth/v1/verify"
+MAILER_URLPATHS_INVITE="/auth/v1/verify"
+MAILER_URLPATHS_RECOVERY="/auth/v1/verify"
+MAILER_URLPATHS_EMAIL_CHANGE="/auth/v1/verify"
+SMTP_ADMIN_EMAIL=admin@poc.local
+SMTP_HOST=supabase-mail
+SMTP_PORT=2500
+SMTP_USER=fake_mail_user
+SMTP_PASS=fake_mail_password
+SMTP_SENDER_NAME=POC Mail
+
+ENABLE_PHONE_SIGNUP=false
+ENABLE_PHONE_AUTOCONFIRM=false
+
+# ─── Storage ────────────────────────────────────────────────
+GLOBAL_S3_BUCKET=poc-files
+REGION=ap-southeast-1
+STORAGE_TENANT_ID=poc-workspace
+
+# ─── API (PostgREST) ──────────────────────────────────────
+PGRST_DB_SCHEMAS=public,storage,graphql_public,poc_he_inspection,poc_poc_speech
+PGRST_DB_MAX_ROWS=1000
+PGRST_DB_EXTRA_SEARCH_PATH=public,extensions
+
+# ─── Functions ─────────────────────────────────────────────
+FUNCTIONS_VERIFY_JWT=false
+
+# ─── Pooler / Supavisor ───────────────────────────────────
+POOLER_TENANT_ID=poc-pooler
+POOLER_PROXY_PORT_TRANSACTION=6543
+POOLER_DEFAULT_POOL_SIZE=20
+POOLER_MAX_CLIENT_CONN=100
+POOLER_DB_POOL_SIZE=5
+
+# ─── MFA (disabled) ────────────────────────────────────────
+MFA_TOTP_ENROLL_ENABLED=true
+MFA_TOTP_VERIFY_ENABLED=true
+MFA_PHONE_ENROLL_ENABLED=false
+MFA_PHONE_VERIFY_ENABLED=false
+MFA_MAX_ENROLLED_FACTORS=10
+
+# ─── OAuth (disabled) ──────────────────────────────────────
+GOOGLE_ENABLED=false
+GOOGLE_CLIENT_ID=
+GOOGLE_SECRET=
+GITHUB_ENABLED=false
+GITHUB_CLIENT_ID=
+GITHUB_SECRET=
+AZURE_ENABLED=false
+AZURE_CLIENT_ID=
+AZURE_SECRET=
+
+# ─── SMS (disabled) ────────────────────────────────────────
+SMS_PROVIDER=
+SMS_OTP_EXP=60
+SMS_OTP_LENGTH=6
+SMS_MAX_FREQUENCY=60s
+SMS_TEMPLATE=
+SMS_TEST_OTP=
+SMS_TWILIO_ACCOUNT_SID=
+SMS_TWILIO_AUTH_TOKEN=
+SMS_TWILIO_MESSAGE_SERVICE_SID=
+
+# ─── SAML SSO (disabled) ──────────────────────────────────
+SAML_ENABLED=false
+SAML_PRIVATE_KEY=
+SAML_ALLOW_ENCRYPTED_ASSERTIONS=false
+SAML_RELAY_STATE_VALIDITY_PERIOD=2m0s
+SAML_EXTERNAL_URL=
+SAML_RATE_LIMIT_ASSERTION=15
+
+# ─── Misc ──────────────────────────────────────────────────
+DOCKER_SOCKET_LOCATION=/var/run/docker.sock
+GOOGLE_PROJECT_ID=GOOGLE_PROJECT_ID
+GOOGLE_PROJECT_NUMBER=GOOGLE_PROJECT_NUMBER
+PROXY_DOMAIN=localhost
+CERTBOT_EMAIL=admin@example.com
+IMGPROXY_AUTO_WEBP=true
