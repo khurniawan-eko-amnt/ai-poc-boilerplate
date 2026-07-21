@@ -2,7 +2,14 @@
 // Workflow:
 //   PATH A (No defect): Read → OK → auto-next
 //   PATH B (Defect):    Voice STT → Photo/Video capture → Select level
-//                       → Confirm popup → Save + Upload all → auto-next
+//                       → Confirm popup → Save answer + Create defect + Link media → auto-next
+//
+// Photo flow per file:
+//   Shutter → show thumbnail instantly with "compressing" bar
+//   Compress (Canvas API, ≤1MB) → blue "uploading" bar
+//   Upload to Supabase Storage → insert inspection_media row
+//   Green bar = complete
+//   On confirmation: save answer, insert defect record, link media
 //
 //   Three-dot menu (top-right): Pause / Finish at any question.
 //   Last question → Submit button with confirmation.
@@ -18,7 +25,18 @@ import { useInspectionStore } from '../stores/inspectionStore'
 import { supabase } from '../services/supabase'
 import { useDebugStore } from '../stores/debugStore'
 import { useToastStore } from '../stores/toastStore'
+import { compressImage } from '../lib/imageCompress'
 import type { DefectSeverity, InspectionMedia } from '../lib/types'
+
+/** Per-file upload progress state */
+type MediaUploadStatus = 'compressing' | 'uploading' | 'done' | 'error'
+
+/** Local media entry with upload progress tracking */
+interface MediaEntry extends InspectionMedia {
+  uploadStatus: MediaUploadStatus
+  /** Blob URL for immediate local thumbnail (set before upload completes) */
+  localThumbnailUrl?: string
+}
 
 const DEFECT_LEVELS: { key: DefectSeverity; label: string; color: string; activeClass: string }[] = [
   { key: 'low', label: 'Rendah', color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10', activeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/40 ring-2 ring-blue-500/40' },
@@ -47,9 +65,11 @@ export function NewInspectionPage() {
   const [selectedDefect, setSelectedDefect] = useState<DefectSeverity | null>(null)
   const [saving, setSaving] = useState(false) // true while awaiting save
 
-  // Local media: held per-question, uploaded on confirm
-  const [localMedia, setLocalMedia] = useState<InspectionMedia[]>([])
-  const [uploadingMedia, setUploadingMedia] = useState(false)
+  // Signed URL cache for displaying stored images (private bucket needs auth)
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
+
+  // Local media: held per-question, with upload progress tracking
+  const [localMedia, setLocalMedia] = useState<MediaEntry[]>([])
 
   // Confirmation popup state
   const [showConfirm, setShowConfirm] = useState(false)
@@ -116,12 +136,6 @@ export function NewInspectionPage() {
   const hasDefect = answer?.flagged === true
   const defectSeverity = answer?.severity ?? null
 
-  // ─── Get public URL from Supabase storage ──────────────
-  const getMediaUrl = useCallback((m: InspectionMedia): string => {
-    const { data } = supabase.storage.from('poc-he-inspection').getPublicUrl(m.file_path)
-    return data?.publicUrl || ''
-  }, [])
-
   // ─── Merge store media + local media for thumbnails ────
   const currentQuestionMedia: InspectionMedia[] = React.useMemo(() => {
     const qId = currentQuestion?.id
@@ -135,8 +149,39 @@ export function NewInspectionPage() {
     return merged
   }, [inspectionMedia, localMedia, answer?.id, currentQuestion?.id])
 
+  // Pre-fetch signed URLs for store-sourced media (private bucket, needs auth)
+  useEffect(() => {
+    const pathsToFetch = currentQuestionMedia
+      .filter(m => m.file_path && !('uploadStatus' in m))
+      .map(m => m.file_path)
+      .filter(p => p && !signedUrls[p])
+    if (pathsToFetch.length === 0) return
+    let cancelled = false
+    Promise.all(pathsToFetch.map(async (path) => {
+      const { data } = await supabase.storage
+        .from('poc-he-inspection')
+        .createSignedUrl(path, 86400) // 24h expiry, enough for the session
+      return { path, url: data?.signedUrl || '' }
+    })).then(results => {
+      if (cancelled) return
+      setSignedUrls(prev => {
+        const next = { ...prev }
+        results.forEach(r => { if (r.url) next[r.path] = r.url })
+        return next
+      })
+    })
+    return () => { cancelled = true }
+  }, [currentQuestionMedia])
+
   // ─── Reset per-question state ─────────────────────────
   useEffect(() => {
+    // Revoke any blob URLs from the previous question to prevent memory leaks
+    localMedia.forEach(m => {
+      const entry = m as MediaEntry
+      if (entry.localThumbnailUrl) {
+        URL.revokeObjectURL(entry.localThumbnailUrl)
+      }
+    })
     setLocalMedia([])
     setVoiceTranscript('')
     setInterimText('')
@@ -206,7 +251,7 @@ export function NewInspectionPage() {
     setShowConfirm(true)
   }, [currentQuestion, hasDefect])
 
-  // ── PATH B Step D: Confirm → Save + Upload + Advance ────
+  // ── PATH B Step D: Confirm → Save answer + Create defect + Link media + Advance ──
   const handleConfirmDefect = useCallback(async () => {
     if (!currentQuestion || !currentInspection || !pendingLevel) return
     setConfirmSaving(true)
@@ -223,11 +268,28 @@ export function NewInspectionPage() {
       } as any)
       if (!answerId) throw new Error('Gagal menyimpan jawaban')
 
-      // 2. Upload all local media to storage with answer_id
+      // 2. Insert defect record
+      const { error: defectErr } = await supabase
+        .from('inspection_defects')
+        .insert({
+          inspection_id: currentInspection.id,
+          answer_id: answerId,
+          equipment_id: equipmentId,
+          title: currentQuestion.question_text,
+          description: finding || null,
+          severity: pendingLevel,
+          status: 'open',
+          tag_out: false,
+        })
+      if (defectErr) {
+        debug('error', 'Failed to create defect record', defectErr)
+      } else {
+        debug('info', `Defect record created for Q${currentQuestion.sort_order}`)
+      }
+
+      // 3. Link all local media to the answer
       if (localMedia.length > 0) {
         for (const mediaItem of localMedia) {
-          // Reconstruct file from localMedia metadata
-          // File is already uploaded immediately on capture — we just need to UPDATE answer_id
           const { error: updateErr } = await supabase
             .from('inspection_media')
             .update({ answer_id: answerId })
@@ -253,7 +315,7 @@ export function NewInspectionPage() {
     } finally {
       setConfirmSaving(false)
     }
-  }, [currentQuestion, currentInspection, pendingLevel, localMedia, saveAnswer, advanceToNext, debug, toast])
+  }, [currentQuestion, currentInspection, pendingLevel, localMedia, saveAnswer, advanceToNext, debug, toast, equipmentId])
 
   // ── Voice STT ───────────────────────────────────────────
   const stopListening = useCallback(() => {
@@ -294,11 +356,7 @@ export function NewInspectionPage() {
       if (allFinals.length > 0 && currentQuestion) {
         const latestFinal = allFinals[allFinals.length - 1]
         setVoiceTranscript(latestFinal)
-        // Fire-and-forget background save for transcript
-        saveAnswer(currentQuestion.id, {
-          answer_type: currentQuestion.answer_type as any,
-          text_value: latestFinal,
-        } as any).catch(() => {})
+        // Transcript held in state — saved on defect confirmation
         debug('info', `Voice transcript: "${latestFinal.slice(0, 80)}"`)
       }
     }
@@ -323,7 +381,7 @@ export function NewInspectionPage() {
     setVoiceListening(true)
     setInterimText('')
     setVoiceTranscript('')
-  }, [voiceListening, currentQuestion, debug, stopListening, saveAnswer, toast])
+  }, [voiceListening, currentQuestion, debug, stopListening, toast])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -333,13 +391,8 @@ export function NewInspectionPage() {
   const handleFindingTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value
     setVoiceTranscript(val)
-    if (currentQuestion) {
-      saveAnswer(currentQuestion.id, {
-        text_value: val,
-        answer_type: currentQuestion.answer_type as any,
-      } as any).catch(() => {})
-    }
-  }, [currentQuestion, saveAnswer])
+    // Text is saved only on defect confirmation — not on every keystroke
+  }, [])
 
   // ── Photo / Video capture ──────────────────────────────
   const handlePhoto = useCallback(() => {
@@ -359,33 +412,79 @@ export function NewInspectionPage() {
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !currentInspection || !currentQuestion) return
-    setUploadingMedia(true)
+
+    // ── 1. IMMEDIATE placeholder entry (shows thumbnail right away) ──
+    const placeholderId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const objectURL = URL.createObjectURL(file)
+    const placeholder: MediaEntry = {
+      id: placeholderId,
+      inspection_id: currentInspection.id,
+      answer_id: null,
+      file_path: '',      // not yet uploaded — thumbnail uses objectURL
+      mime_type: file.type,
+      file_size_bytes: file.size,
+      gps_lat: null,
+      gps_lng: null,
+      captured_at: new Date().toISOString(),
+      description: null,
+      is_synced: false,
+      created_at: new Date().toISOString(),
+      uploadStatus: 'compressing',
+      localThumbnailUrl: objectURL,  // ← store blob URL so thumbnail renders immediately
+    }
+    setLocalMedia(prev => [...prev, placeholder])
+
+    // ── 2. Background: compress → upload → insert row ──
     try {
+      const fileForUpload = file.type.startsWith('image/')
+        ? await compressImage(file, 1_000_000, 1920)
+        : file
+
+      // Update to "uploading" after compression
+      setLocalMedia(prev => prev.map(m =>
+        m.id === placeholderId ? { ...m, uploadStatus: 'uploading' as MediaUploadStatus } : m
+      ))
+
       const uploadMedia = useInspectionStore.getState().uploadMedia
-      const mediaId = await uploadMedia(file, currentInspection.id, null) // No answer_id yet
-      if (mediaId) {
-        const localEntry: InspectionMedia = {
-          id: mediaId,
-          inspection_id: currentInspection.id,
-          answer_id: null,
-          file_path: `${currentInspection.id}/${Date.now()}-${file.name}`,
-          mime_type: file.type,
-          file_size_bytes: file.size,
-          gps_lat: null,
-          gps_lng: null,
-          captured_at: new Date().toISOString(),
-          description: null,
-          is_synced: false,
-          created_at: new Date().toISOString(),
-        }
-        setLocalMedia(prev => [...prev, localEntry])
-        debug('info', `Media captured: ${file.name}`)
+      const mediaRecord = await uploadMedia(fileForUpload, currentInspection.id, null)
+
+      if (mediaRecord && 'id' in mediaRecord) {
+        // Replace the placeholder with the real record (done!)
+        setLocalMedia(prev => prev.map(m =>
+          m.id === placeholderId
+            ? {
+                id: mediaRecord.id as string,
+                inspection_id: currentInspection.id,
+                answer_id: null,
+                file_path: mediaRecord.file_path as string,
+                mime_type: fileForUpload.type,
+                file_size_bytes: fileForUpload.size,
+                gps_lat: null,
+                gps_lng: null,
+                captured_at: new Date().toISOString(),
+                description: null,
+                is_synced: false,
+                created_at: new Date().toISOString(),
+                uploadStatus: 'done',
+                localThumbnailUrl: objectURL,  // ← keep it for consistent thumbnail display
+              }
+            : m
+        ))
+        const savedKb = file.size > fileForUpload.size
+          ? ` (dikompres dari ${(file.size / 1024).toFixed(0)}KB)`
+          : ''
+        debug('info', `Media captured: ${file.name}${savedKb}`)
       }
     } catch {
+      // Mark as error
+      setLocalMedia(prev => prev.map(m =>
+        m.id === placeholderId ? { ...m, uploadStatus: 'error' as MediaUploadStatus } : m
+      ))
       toast({ type: 'error', message: 'Gagal mengunggah media' })
+    } finally {
+      // Do NOT revoke objectURL here — it's used by the thumbnail until the question changes
+      e.target.value = ''
     }
-    setUploadingMedia(false)
-    e.target.value = ''
   }, [currentInspection, currentQuestion, debug, toast])
 
   // ── ⋮ Menu: Pause ─────────────────────────────────────
@@ -633,30 +732,42 @@ export function NewInspectionPage() {
             )}
           </div>
 
-          {/* B3: Media thumbnails */}
+          {/* B3: Media thumbnails with upload progress */}
           {currentQuestionMedia.length > 0 && (
             <div className="pt-1">
               <label className="text-xs text-zinc-500 mb-2 flex items-center gap-1">
                 <Camera className="w-3 h-3" /> Bukti yang diambil ({currentQuestionMedia.length}):
               </label>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-3 flex-wrap">
                 {currentQuestionMedia.map((m) => {
-                  const url = getMediaUrl(m)
+                  const isLocalEntry = 'uploadStatus' in m
+                  const localEntry = m as MediaEntry
+                  // Use blob URL for local entries (instant), fallback to signed URL for stored
+                  const url = localEntry.localThumbnailUrl || signedUrls[m.file_path] || ''
                   const isVideo = m.mime_type.startsWith('video/')
                   return (
-                    <div key={m.id} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-800 flex-shrink-0">
-                      {url && !isVideo ? (
-                        <img src={url} alt="Foto temuan" className="w-full h-full object-cover"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center') }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          {isVideo ? <Film className="w-7 h-7 text-purple-400" /> : <ImageIcon className="w-7 h-7 text-zinc-500" />}
-                        </div>
-                      )}
-                      {uploadingMedia && m === currentQuestionMedia[currentQuestionMedia.length - 1] && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
-                          <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    <div key={m.id} className="flex flex-col items-center gap-1">
+                      {/* Thumbnail */}
+                      <div className="w-20 h-20 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-800 flex-shrink-0 relative">
+                        {url && !isVideo ? (
+                          <img src={url} alt="Foto temuan" className="w-full h-full object-cover"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center') }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            {isVideo ? <Film className="w-7 h-7 text-purple-400" /> : <ImageIcon className="w-7 h-7 text-zinc-500" />}
+                          </div>
+                        )}
+                      </div>
+                      {/* Progress bar below thumbnail */}
+                      {isLocalEntry && (
+                        <div className="w-20 h-1.5 rounded-full overflow-hidden bg-zinc-800">
+                          <div className={`h-full rounded-full transition-all duration-500 ${
+                            localEntry.uploadStatus === 'done' ? 'w-full bg-green-500'
+                            : localEntry.uploadStatus === 'error' ? 'w-full bg-red-500'
+                            : localEntry.uploadStatus === 'uploading' ? 'w-4/5 bg-blue-500 animate-pulse'
+                            : 'w-3/5 bg-orange-400 animate-pulse'
+                          }`} />
                         </div>
                       )}
                     </div>

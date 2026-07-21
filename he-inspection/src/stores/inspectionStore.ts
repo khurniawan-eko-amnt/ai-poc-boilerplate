@@ -51,7 +51,7 @@ interface InspectionState {
   updateDefect: (id: string, updates: Partial<InspectionDefect>) => Promise<void>
 
   // Media
-  uploadMedia: (file: File, inspectionId: string, answerId: string | null) => Promise<string | null>
+  uploadMedia: (file: File, inspectionId: string, answerId: string | null) => Promise<InspectionMedia | null>
 
   // Reset
   resetCurrentInspection: () => void
@@ -263,7 +263,10 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
     try {
       const path = `${inspectionId}/${Date.now()}-${file.name}`
       const { error: uploadErr } = await supabase.storage
-        .from('poc-he-inspection').upload(path, file)
+        .from('poc-he-inspection').upload(path, file, {
+          cacheControl: '3600',
+          upsert: false,
+        })
       if (uploadErr) throw uploadErr
 
       const { data: media, error } = await supabase.from('inspection_media').insert({
@@ -272,10 +275,10 @@ export const useInspectionStore = create<InspectionState>((set, get) => ({
         file_path: path,
         mime_type: file.type,
         file_size_bytes: file.size,
-      }).select('id').single()
+      }).select('*').single()
       if (error) throw error
-      debug.add('info', `Media uploaded: ${file.name}`)
-      return media?.id || null
+      debug.add('info', `Media uploaded: ${file.name} (${(file.size / 1024).toFixed(0)}KB)`)
+      return media || null // return full media record
     } catch (err) {
       const msg = errorMessage(err)
       debug.add('error', `Media upload failed: ${msg}`)
