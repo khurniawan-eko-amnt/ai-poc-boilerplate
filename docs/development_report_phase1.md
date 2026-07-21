@@ -253,11 +253,11 @@ ai-poc-boilerplate/
 
 | Service | URL | Status |
 |---------|-----|--------|
-| Supabase Kong Gateway | `http://104.215.187.68:8000` | ✅ Running |
+| Supabase Kong Gateway | `http://localhost:8000` | ✅ Running |
 | Auth API | `http://localhost:8000/auth/v1` | ✅ Healthy |
 | REST API | `http://localhost:8000/rest/v1` | ✅ Healthy |
 | Storage API | `http://localhost:8000/storage/v1` | ✅ Healthy |
-| Studio Admin | `http://104.215.187.68:3001` | ✅ Healthy |
+| Studio Admin | `http://localhost:3001` | ✅ Healthy |
 | he-inspection (production) | `http://localhost:4000` | ✅ Serving |
 
 ---
